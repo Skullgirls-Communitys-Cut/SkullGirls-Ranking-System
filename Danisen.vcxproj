@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>18.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{fb0a6887-a97c-4423-989d-c64ec3548b14}</ProjectGuid>
+    <RootNamespace>Danisen</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetName>dbghelp</TargetName>
+    <OutDir>..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\Skullgirls</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <TargetName>dbghelp</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;DANISEN_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile />
+      <AdditionalIncludeDirectories>$(ProjectDir)external\OpenSSL-Win32\include;$(ProjectDir)external\imgui;$(ProjectDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <ModuleDefinitionFile>$(ProjectDir)src\dll_proxy\dll_proxy.def</ModuleDefinitionFile>
+      <AdditionalLibraryDirectories>$(ProjectDir)external\OpenSSL-Win32\lib\VC\x86\MT;$(ProjectDir)lib\steam;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>steam_api.lib;libssl_static.lib;libcrypto_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;DANISEN_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile />
+      <AdditionalIncludeDirectories>$(ProjectDir)external\OpenSSL-Win32\include;$(ProjectDir)external\imgui;$(ProjectDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <ModuleDefinitionFile>$(ProjectDir)src\dll_proxy\dll_proxy.def</ModuleDefinitionFile>
+      <AdditionalLibraryDirectories>$(ProjectDir)external\OpenSSL-Win32\lib\VC\x86\MT;$(ProjectDir)lib\steam;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>steam_api.lib;libssl_static.lib;libcrypto_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="env.h" />
+    <ClInclude Include="external\imgui\imconfig.h" />
+    <ClInclude Include="external\imgui\imgui.h" />
+    <ClInclude Include="external\imgui\imgui_internal.h" />
+    <ClInclude Include="external\imgui\imstb_rectpack.h" />
+    <ClInclude Include="external\imgui\imstb_textedit.h" />
+    <ClInclude Include="external\imgui\imstb_truetype.h" />
+    <ClInclude Include="external\json.hpp" />
+    <ClInclude Include="external\steam\isteamapplist.h" />
+    <ClInclude Include="external\steam\isteamapps.h" />
+    <ClInclude Include="external\steam\isteamappticket.h" />
+    <ClInclude Include="external\steam\isteamclient.h" />
+    <ClInclude Include="external\steam\isteamcontroller.h" />
+    <ClInclude Include="external\steam\isteamfriends.h" />
+    <ClInclude Include="external\steam\isteamgamecoordinator.h" />
+    <ClInclude Include="external\steam\isteamgameserver.h" />
+    <ClInclude Include="external\steam\isteamgameserverstats.h" />
+    <ClInclude Include="external\steam\isteamhtmlsurface.h" />
+    <ClInclude Include="external\steam\isteamhttp.h" />
+    <ClInclude Include="external\steam\isteaminput.h" />
+    <ClInclude Include="external\steam\isteaminventory.h" />
+    <ClInclude Include="external\steam\isteammatchmaking.h" />
+    <ClInclude Include="external\steam\isteammusic.h" />
+    <ClInclude Include="external\steam\isteammusicremote.h" />
+    <ClInclude Include="external\steam\isteamnetworking.h" />
+    <ClInclude Include="external\steam\isteamnetworkingmessages.h" />
+    <ClInclude Include="external\steam\isteamnetworkingsockets.h" />
+    <ClInclude Include="external\steam\isteamnetworkingutils.h" />
+    <ClInclude Include="external\steam\isteamparentalsettings.h" />
+    <ClInclude Include="external\steam\isteamps3overlayrenderer.h" />
+    <ClInclude Include="external\steam\isteamremoteplay.h" />
+    <ClInclude Include="external\steam\isteamremotestorage.h" />
+    <ClInclude Include="external\steam\isteamscreenshots.h" />
+    <ClInclude Include="external\steam\isteamugc.h" />
+    <ClInclude Include="external\steam\isteamuser.h" />
+    <ClInclude Include="external\steam\isteamuserstats.h" />
+    <ClInclude Include="external\steam\isteamutils.h" />
+    <ClInclude Include="external\steam\isteamvideo.h" />
+    <ClInclude Include="external\steam\matchmakingtypes.h" />
+    <ClInclude Include="external\steam\steamclientpublic.h" />
+    <ClInclude Include="external\steam\steamencryptedappticket.h" />
+    <ClInclude Include="external\steam\steamhttpenums.h" />
+    <ClInclude Include="external\steam\steamnetworkingfakeip.h" />
+    <ClInclude Include="external\steam\steamnetworkingtypes.h" />
+    <ClInclude Include="external\steam\steamps3params.h" />
+    <ClInclude Include="external\steam\steamtypes.h" />
+    <ClInclude Include="external\steam\steamuniverse.h" />
+    <ClInclude Include="external\steam\steam_api.h" />
+    <ClInclude Include="external\steam\steam_api_common.h" />
+    <ClInclude Include="external\steam\steam_api_flat.h" />
+    <ClInclude Include="external\steam\steam_api_internal.h" />
+    <ClInclude Include="external\steam\steam_gameserver.h" />
+    <ClInclude Include="src\dll_proxy\dll_proxy.h" />
+    <ClInclude Include="src\main_thread\main_thread.h" />
+    <ClInclude Include="src\match\match.h" />
+    <ClInclude Include="src\memory\memory.hpp" />
+    <ClInclude Include="src\process\process.h" />
+    <ClInclude Include="src\UI\d3d9Wrapper.h" />
+    <ClInclude Include="src\UI\UI.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="external\imgui\backends\imgui_impl_dx9.cpp" />
+    <ClCompile Include="external\imgui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="external\imgui\imgui.cpp" />
+    <ClCompile Include="external\imgui\imgui_demo.cpp" />
+    <ClCompile Include="external\imgui\imgui_draw.cpp" />
+    <ClCompile Include="external\imgui\imgui_tables.cpp" />
+    <ClCompile Include="external\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\dllmain.cpp" />
+    <ClCompile Include="src\dll_proxy\dll_proxy.cpp" />
+    <ClCompile Include="src\main_thread\main_thread.cpp" />
+    <ClCompile Include="src\match\match.cpp" />
+    <ClCompile Include="src\process\process.cpp" />
+    <ClCompile Include="src\UI\d3d9Wrapper.cpp" />
+    <ClCompile Include="src\UI\UI.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="external\steam\steam_api.json" />
+    <None Include="src\dll_proxy\dll_proxy.def" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

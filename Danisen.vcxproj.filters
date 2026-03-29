@@ -1,0 +1,275 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="dll_proxy">
+      <UniqueIdentifier>{5d06d659-a714-441b-8422-ab6408e9662a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="external">
+      <UniqueIdentifier>{79bf6df6-db44-4017-bd11-db65ec7c7fa3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="main_thread">
+      <UniqueIdentifier>{691a0298-c819-4888-87cf-76f8692ce437}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="memory">
+      <UniqueIdentifier>{d3203442-272a-4cc5-b67f-5861f5427968}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="process">
+      <UniqueIdentifier>{56751486-91b4-4a49-b88d-173dac68d2f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="match">
+      <UniqueIdentifier>{55390153-c8cd-4671-8433-9e7f563e2cdb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="external\steam">
+      <UniqueIdentifier>{9d03bfc6-f238-4fe6-b865-4fabc3fdebf4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{7ae4ab6e-7485-4a7b-808b-a410f8cd04fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="external\imgui">
+      <UniqueIdentifier>{8599ad86-b823-40c3-a0c1-aa53db1b882b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="external\json.hpp">
+      <Filter>external</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dll_proxy\dll_proxy.h">
+      <Filter>dll_proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="env.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\main_thread\main_thread.h">
+      <Filter>main_thread</Filter>
+    </ClInclude>
+    <ClInclude Include="src\memory\memory.hpp">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\process\process.h">
+      <Filter>process</Filter>
+    </ClInclude>
+    <ClInclude Include="src\match\match.h">
+      <Filter>match</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamapplist.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamapps.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamappticket.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamclient.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamcontroller.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamfriends.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamgamecoordinator.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamgameserver.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamgameserverstats.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamhtmlsurface.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamhttp.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteaminput.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteaminventory.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteammatchmaking.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteammusic.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteammusicremote.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamnetworking.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamnetworkingmessages.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamnetworkingsockets.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamnetworkingutils.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamparentalsettings.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamps3overlayrenderer.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamremoteplay.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamremotestorage.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamscreenshots.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamugc.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamuser.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamuserstats.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamutils.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\isteamvideo.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\matchmakingtypes.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\steam_api.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\steam_api_common.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\steam_api_flat.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\steam_api_internal.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\steam_gameserver.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\steamclientpublic.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\steamencryptedappticket.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\steamhttpenums.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\steamnetworkingfakeip.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\steamnetworkingtypes.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\steamps3params.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\steamtypes.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="external\steam\steamuniverse.h">
+      <Filter>external\steam</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UI\d3d9Wrapper.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UI\UI.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="external\imgui\imconfig.h">
+      <Filter>external\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="external\imgui\imgui.h">
+      <Filter>external\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="external\imgui\imgui_internal.h">
+      <Filter>external\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="external\imgui\imstb_rectpack.h">
+      <Filter>external\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="external\imgui\imstb_textedit.h">
+      <Filter>external\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="external\imgui\imstb_truetype.h">
+      <Filter>external\imgui</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dll_proxy\dll_proxy.cpp">
+      <Filter>dll_proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main_thread\main_thread.cpp">
+      <Filter>main_thread</Filter>
+    </ClCompile>
+    <ClCompile Include="src\process\process.cpp">
+      <Filter>process</Filter>
+    </ClCompile>
+    <ClCompile Include="src\match\match.cpp">
+      <Filter>match</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\d3d9Wrapper.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\UI.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="external\imgui\imgui.cpp">
+      <Filter>external\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="external\imgui\imgui_demo.cpp">
+      <Filter>external\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="external\imgui\imgui_draw.cpp">
+      <Filter>external\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="external\imgui\imgui_tables.cpp">
+      <Filter>external\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="external\imgui\imgui_widgets.cpp">
+      <Filter>external\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="external\imgui\backends\imgui_impl_dx9.cpp">
+      <Filter>external\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="external\imgui\backends\imgui_impl_win32.cpp">
+      <Filter>external\imgui</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\dll_proxy\dll_proxy.def">
+      <Filter>dll_proxy</Filter>
+    </None>
+    <None Include="external\steam\steam_api.json">
+      <Filter>external\steam</Filter>
+    </None>
+  </ItemGroup>
+</Project>
