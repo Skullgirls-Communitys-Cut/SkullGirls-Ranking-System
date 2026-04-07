@@ -162,10 +162,15 @@ void MatchHistory::RenderHistory() const {
     ImGui::Separator();
     ImGui::Text("Match History:");
     ImGui::BeginChild("HistoryList", ImVec2(0, 200), true);
-    for (const auto& rec : m_history) {
+    for (size_t i = 0; i < m_history.size(); ++i) {
+        const auto& rec = m_history[i];
         // Аватар (32x32)
         if (rec.avatarTex) {
-            ImGui::Image(rec.avatarTex, ImVec2(32, 32));
+            ImGui::PushID(static_cast<int>(i));
+            if(ImGui::ImageButton("##avatar", rec.avatarTex, ImVec2(32, 32))) {
+                SteamFriends()->ActivateGameOverlayToUser("steamid", rec.oppID);
+            }
+            ImGui::PopID();
         }
         else {
             ImGui::Dummy(ImVec2(32, 32));
@@ -174,13 +179,13 @@ void MatchHistory::RenderHistory() const {
 
         // Группа: ник и результат под ним
         ImGui::BeginGroup();
-        ImGui::Text("%s", rec.nickname.c_str());
+        ImGui::Text("Opponent: %s", rec.nickname.c_str());
         switch (rec.matchResult) {
-        case 1: ImGui::TextColored(ImVec4(0, 1, 0, 1), "Win via Timeout"); break;
-        case 2: ImGui::TextColored(ImVec4(1, 0, 0, 1), "Loss via Timeout"); break;
+        case 1: ImGui::TextColored(ImVec4(0, 1, 0, 1), "You win via Timeout"); break;
+        case 2: ImGui::TextColored(ImVec4(1, 0, 0, 1), "You lose via Timeout"); break;
         case 3: ImGui::TextColored(ImVec4(1, 1, 0, 1), "Draw via Timeout"); break;
-        case 4: ImGui::TextColored(ImVec4(0, 1, 0, 1), "Win"); break;
-        case 5: ImGui::TextColored(ImVec4(1, 0, 0, 1), "Loss"); break;
+        case 4: ImGui::TextColored(ImVec4(0, 1, 0, 1), "You win"); break;
+        case 5: ImGui::TextColored(ImVec4(1, 0, 0, 1), "You lose"); break;
         case 6: ImGui::TextColored(ImVec4(1, 1, 0, 1), "Draw"); break;
         default: ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1), "Unknown result"); break;
         }
