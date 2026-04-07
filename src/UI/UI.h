@@ -7,6 +7,8 @@
 // Предварительное объявление для IDirect3DTexture9
 struct IDirect3DTexture9;
 
+
+
 class MatchHistory {
 public:
     struct Record {
@@ -20,7 +22,8 @@ public:
 
     MatchHistory();
     ~MatchHistory();
-
+    void InvalidateDeviceObjects();   // освободить все текстуры
+    void RestoreDeviceObjects(IDirect3DDevice9* device); // пересоздать их заново
     // Инициализация с указателем на устройство DX9 (для создания текстур)
     void Init(IDirect3DDevice9* device);
 

@@ -11,6 +11,7 @@
 #include "../../env.h"
 
 
+
 namespace imgui_show {
     bool Show_Window = false;
 }
@@ -30,6 +31,23 @@ MatchHistory::~MatchHistory() {
 
 void MatchHistory::Init(IDirect3DDevice9* device) {
     m_device = device;
+}
+
+void MatchHistory::InvalidateDeviceObjects() {
+    for (auto& rec : m_history) {
+        if (rec.avatarTex) {
+            rec.avatarTex->Release();
+            rec.avatarTex = nullptr;
+        }
+        rec.avatarRequested = false;   // разрешаем повторный запрос аватара
+    }
+}
+
+void MatchHistory::RestoreDeviceObjects(IDirect3DDevice9* device) {
+    m_device = device;
+    for (auto& rec : m_history) {
+        RequestAvatarForRecord(rec);   // заново запрашиваем аватар (асинхронно)
+    }
 }
 
 void MatchHistory::AddMatch(CSteamID oppID, int result, long long timestamp) {

@@ -42,8 +42,15 @@ HRESULT STDMETHODCALLTYPE Hooked_Present(IDirect3DDevice9* pDevice, CONST RECT* 
     CONST RECT* pDestRect, HWND hDestWindowOverride,
     CONST RGNDATA* pDirtyRegion)
 {
-    RankUI::Render();
+    // Проверяем, не потеряно ли устройство
+    HRESULT hr = pDevice->TestCooperativeLevel();
+    if (hr == D3DERR_DEVICELOST || hr == D3DERR_DEVICENOTRESET) {
+        // Устройство временно недоступно — рендерим только оригинальный Present, без ImGui
+        return OriginalPresent(pDevice, pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
+    }
 
+    // Устройство готово — можно рисовать интерфейс
+    RankUI::Render();
     return OriginalPresent(pDevice, pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
 
@@ -51,10 +58,13 @@ HRESULT STDMETHODCALLTYPE Hooked_Present(IDirect3DDevice9* pDevice, CONST RECT* 
 HRESULT STDMETHODCALLTYPE Hooked_Reset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
     ImGui_ImplDX9_InvalidateDeviceObjects();
+    RankUI::g_MatchHistory.InvalidateDeviceObjects();   // ОСВОБОДИТЬ СТАРЫЕ ТЕКСТУРЫ
+
     HRESULT hr = OriginalReset(pDevice, pPresentationParameters);
     if (SUCCEEDED(hr))
     {
         ImGui_ImplDX9_CreateDeviceObjects();
+        RankUI::g_MatchHistory.RestoreDeviceObjects(pDevice);   // ПЕРЕСОЗДАТЬ ТЕКСТУРЫ
     }
     return hr;
 }
