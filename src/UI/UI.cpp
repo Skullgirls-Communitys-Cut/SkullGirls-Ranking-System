@@ -9,7 +9,7 @@
 #include "d3d9Wrapper.h"
 #include "../match/match.h"
 #include "../../env.h"
-
+#include "../../src/main_thread/main_thread.h"
 
 
 namespace imgui_show {
@@ -254,22 +254,34 @@ namespace RankUI {
 
         ImGui::NewFrame();
         if (imgui_show::Show_Window) {
+
+            
+
             ImGui::Begin("Skullgirls Ranking System", &imgui_show::Show_Window);
-            if (ImGui::Checkbox("Ranked Mode", &checked)) {
-                g_CurrentMatch.SetCanSendMatch(checked);
+
+            if (NeedUpdate) {
+                ImGui::Text("Please update Ranked Mod from");
+                ImGui::SameLine();
+                ImGui::TextLinkOpenURL("github page", "https://github.com/Skullgirls-Communitys-Cut/SkullGirls-Ranking-System/releases/latest");
+                ImGui::End();
             }
-            ImGui::Text("Turn on or off ranking matches.");
+            else {
+                if (ImGui::Checkbox("Ranked Mode", &checked)) {
+                    g_CurrentMatch.SetCanSendMatch(checked);
+                }
+                ImGui::Text("Turn on or off ranking matches.");
 
-            const char* roomTypeStr = SteamMatchmaking()->GetLobbyData(g_CurrentMatch.getLobbyID(), "RoomType");
-            int RoomType = (roomTypeStr && roomTypeStr[0]) ? atoi(roomTypeStr) : 0;
-            if (RoomType != LOBBY_TYPE_ALL_PLAY) {
-                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "You are playing in the wrong lobby type!");
+                const char* roomTypeStr = SteamMatchmaking()->GetLobbyData(g_CurrentMatch.getLobbyID(), "RoomType");
+                int RoomType = (roomTypeStr && roomTypeStr[0]) ? atoi(roomTypeStr) : 0;
+                if (RoomType != LOBBY_TYPE_ALL_PLAY) {
+                    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "You are playing in the wrong lobby type!");
+                }
+
+                // Отображаем историю матчей
+                g_MatchHistory.RenderHistory();
+
+                ImGui::End();
             }
-
-            // Отображаем историю матчей
-            g_MatchHistory.RenderHistory();
-
-            ImGui::End();
         }
         ImGui::EndFrame();
         ImGui::Render();

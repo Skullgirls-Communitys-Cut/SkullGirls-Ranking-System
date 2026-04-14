@@ -1,6 +1,14 @@
-﻿#include <Windows.h>
+﻿#define CPPHTTPLIB_OPENSSL_SUPPORT
+#include "httplib.h"
+
+#include <Windows.h>
+
+#include "json.hpp"
+using json = nlohmann::json;
+
 
 #include "main_thread.h"
+#include "../../env.h"
 #include "../process/process.h"
 #include "../memory/memory.hpp"
 #include "../match/match.h"
@@ -9,16 +17,24 @@
 
 std::atomic<bool> MainThreadShouldStop = false;
 std::atomic<bool> MainThreadMatchReaded = false;
+
+std::atomic<bool> NeedUpdate = false;
 #define GAME_STATUS_MATCH_STARTED 0x4
+
 bool InitializeHook();
+bool checkVersionAndUpdate(const std::string& url, const std::string& expected_version);
 
 int MainThreadProc(HMODULE hModule) {
 	if (!ProcessManager::instance().ReadProcess()) {
 		MessageBox(NULL, L"Error! Can't read process", L"Main Thread", MB_ICONERROR);
 		return -1;
 	};
+
 	int s_GameStatus;
 	InitializeHook();
+	NeedUpdate = checkVersionAndUpdate(VERSION_CHECK_URL, VERSION);
+	if (NeedUpdate) return -1;
+
 	while (!MainThreadShouldStop) {
 
 		MemoryWorker::ReadProcessMemoryWithOffsets(
@@ -74,4 +90,27 @@ bool InitializeHook() {
 		}
 	}
 	return false;
+}
+
+bool checkVersionAndUpdate(const std::string& url, const std::string& expected_version) {
+	httplib::Client cli(url);
+
+	// Отправляем GET-запрос
+	auto res = cli.Get("/");
+	if (!res || res->status != 200) {
+		std::cerr << "HTTP error: " << (res ? std::to_string(res->status) : "no response") << std::endl;
+		return true; // ошибка – считаем, что нужно обновление
+	}
+
+	try {
+		json data = json::parse(res->body);
+		if (!data.contains("version")) {
+			return true;
+		}
+		std::string remote_version = data["version"];
+		return remote_version != expected_version;
+	}
+	catch (const std::exception& e) {
+		return true;
+	}
 }
