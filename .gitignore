@@ -1,4 +1,5 @@
-/.vs
+﻿/.vs
 /Release
 /Danisen
 TODO.txt
+SUPER_SECRET_KEY.*

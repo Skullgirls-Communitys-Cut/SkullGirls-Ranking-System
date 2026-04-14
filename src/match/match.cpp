@@ -12,6 +12,7 @@ using json = nlohmann::json;
 
 #include "match.h"
 #include "../../env.h"
+#include "../../SUPER_SECRET_KEY.h"
 #include "../memory/memory.hpp"
 #include "../process/process.h"
 #include "../UI/UI.h"
@@ -82,6 +83,8 @@ bool Match::sendMatchInfo() {
 
     if (!CanSendMatch) return false;
 
+    SUPER_SECRET_KEY.RequestTicket();
+
     const char* roomTypeStr = SteamMatchmaking()->GetLobbyData(lobbyID, "RoomType");
     int RoomType = (roomTypeStr && roomTypeStr[0]) ? atoi(roomTypeStr) : 0;
     if (RoomType != LOBBY_TYPE_ALL_PLAY) return false;
@@ -118,6 +121,8 @@ bool Match::sendMatchInfo() {
     ReadCharacterNames();
 
     json request;
+    request["version"] = VERSION;
+
     request["matchId"] = (int)rng0 + matchCount;
     request["matchResult"] = result;
     request["timeStamp"] = timestamp;
@@ -130,23 +135,33 @@ bool Match::sendMatchInfo() {
     request["opponentInfo"]["characters"] = GenerateCharacterNames(!WeAreFirstPlayer);
     request["opponentInfo"]["region"] = OppLoc;
 
-    std::string body = request.dump();
     std::string url = API_URL;
     std::string path = API_PATH;
 
-    matchCount++; // увеличиваем счётчик под мьютексом
-
     // Запускаем поток для отправки, передавая копии данных
-    std::thread([body, url, path]() {
+    
+    std::thread([request, url, path, OppSteamID, result, timestamp]() mutable {
+        while (!SUPER_SECRET_KEY.GetHasTicket()) {
+            Sleep(10);
+        };
+
+        request["key"] = SUPER_SECRET_KEY.GetCurrentTicketBase64();
+
+        std::string body = request.dump();
+
+
+#ifdef _DEBUG   
+        std::ofstream file("output.json");
+        file << request.dump(4);
+#endif
+
         httplib::Client client(url.c_str());
         auto res = client.Post(path, body, "application/json");
-        // Можно добавить логирование результата при необходимости
+
+        RankUI::g_MatchHistory.AddMatch(OppSteamID, result, timestamp);
         }).detach();
-    #ifdef _DEBUG
-    std::ofstream file("output.json");
-    file << request.dump(4);
-    #endif
-    RankUI::g_MatchHistory.AddMatch(OppSteamID, result, timestamp);
+
+    
     return true;
 }
 

@@ -5,6 +5,7 @@
 #include "../memory/memory.hpp"
 #include "../match/match.h"
 #include "../UI/d3d9Wrapper.h"
+#include "../../SUPER_SECRET_KEY.h"
 
 std::atomic<bool> MainThreadShouldStop = false;
 std::atomic<bool> MainThreadMatchReaded = false;
@@ -12,10 +13,6 @@ std::atomic<bool> MainThreadMatchReaded = false;
 bool InitializeHook();
 
 int MainThreadProc(HMODULE hModule) {
-	//Somewhere here, we init UI
-
-	//Somewhere here, we start STEAM
-
 	if (!ProcessManager::instance().ReadProcess()) {
 		MessageBox(NULL, L"Error! Can't read process", L"Main Thread", MB_ICONERROR);
 		return -1;
@@ -35,6 +32,7 @@ int MainThreadProc(HMODULE hModule) {
 		//Мы в матче, но ещё не прочитали его!
 		if (!MainThreadMatchReaded && 
 			s_GameStatus == GAME_STATUS_MATCH_STARTED) {
+			
 			g_CurrentMatch.updateCounter();
 			MainThreadMatchReaded = true;
 		}
@@ -75,4 +73,5 @@ bool InitializeHook() {
 			}
 		}
 	}
+	return false;
 }

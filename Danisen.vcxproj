@@ -156,6 +156,7 @@
     <ClInclude Include="src\process\process.h" />
     <ClInclude Include="src\UI\d3d9Wrapper.h" />
     <ClInclude Include="src\UI\UI.h" />
+    <ClInclude Include="SUPER_SECRET_KEY.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="external\imgui\backends\imgui_impl_dx9.cpp" />
@@ -172,6 +173,7 @@
     <ClCompile Include="src\process\process.cpp" />
     <ClCompile Include="src\UI\d3d9Wrapper.cpp" />
     <ClCompile Include="src\UI\UI.cpp" />
+    <ClCompile Include="SUPER_SECRET_KEY.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="external\steam\steam_api.json" />

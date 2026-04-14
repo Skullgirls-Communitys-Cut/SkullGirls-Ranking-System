@@ -40,6 +40,9 @@
     <Filter Include="external\imgui">
       <UniqueIdentifier>{8599ad86-b823-40c3-a0c1-aa53db1b882b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SUPER_SECRET_KEY">
+      <UniqueIdentifier>{f1f3a07e-348d-4ac7-bd39-90d4328279e8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\json.hpp">
@@ -219,6 +222,9 @@
     <ClInclude Include="external\imgui\imstb_truetype.h">
       <Filter>external\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="SUPER_SECRET_KEY.h">
+      <Filter>SUPER_SECRET_KEY</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.cpp">
@@ -262,6 +268,9 @@
     </ClCompile>
     <ClCompile Include="external\imgui\backends\imgui_impl_win32.cpp">
       <Filter>external\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="SUPER_SECRET_KEY.cpp">
+      <Filter>SUPER_SECRET_KEY</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

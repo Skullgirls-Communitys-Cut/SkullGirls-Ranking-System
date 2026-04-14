@@ -6,3 +6,4 @@
 #define API_URL "https://skullgirlscommunity.com"
 #define API_PATH "/api/match"
 
+#define VERSION 1.3
