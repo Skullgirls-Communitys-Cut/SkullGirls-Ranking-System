@@ -93,10 +93,10 @@ bool InitializeHook() {
 }
 
 bool checkVersionAndUpdate(const std::string& url, const std::string& expected_version) {
-	httplib::Client cli(url);
+	httplib::Client cli(VERSION_CHECK_URL);
 
 	// Отправляем GET-запрос
-	auto res = cli.Get("/");
+	auto res = cli.Get(VERSION_CHECK_PATH);
 	if (!res || res->status != 200) {
 		std::cerr << "HTTP error: " << (res ? std::to_string(res->status) : "no response") << std::endl;
 		return true; // ошибка – считаем, что нужно обновление

@@ -258,7 +258,7 @@ namespace RankUI {
             
 
             ImGui::Begin("Skullgirls Ranking System", &imgui_show::Show_Window);
-
+        
             if (NeedUpdate) {
                 ImGui::Text("Please update Ranked Mod from");
                 ImGui::SameLine();
@@ -277,8 +277,14 @@ namespace RankUI {
                     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "You are playing in the wrong lobby type!");
                 }
 
+                ImGui::Separator();
+
                 // Отображаем историю матчей
                 g_MatchHistory.RenderHistory();
+
+                ImGui::Text("");
+
+                ImGui::TextDisabled("Version: %s", VERSION);
 
                 ImGui::End();
             }

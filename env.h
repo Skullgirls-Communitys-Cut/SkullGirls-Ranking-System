@@ -6,5 +6,6 @@
 #define API_URL "https://skullgirlscommunity.com"
 #define API_PATH "/api/match"
 
-#define VERSION_CHECK_URL "https://raw.githubusercontent.com/Skullgirls-Communitys-Cut/SkullGirls-Ranking-System/refs/heads/master/version.json"
+#define VERSION_CHECK_URL "https://raw.githubusercontent.com"
+#define VERSION_CHECK_PATH "/Skullgirls-Communitys-Cut/SkullGirls-Ranking-System/refs/heads/master/version.json"
 #define VERSION "1.3"
