@@ -33,13 +33,14 @@ CurlWrapper::Response CurlWrapper::Request(const std::string& url, const std::st
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response.body);
+    curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
     //curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
     //curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NO_REVOKE | CURLSSLOPT_ALLOW_BEAST);
     //curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_ALPN, 0L); // Отключаем расширения ALPN и HTTP2 для Schannel
     //curl_easy_setopt(curl, CURLOPT_SSL_SESSIONID_CACHE, 0L);
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L); // Важно для многопоточности
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); // 1
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); // 2
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L); // 1
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L); // 2
     // Полезные настройки для стабильности
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 15L);
