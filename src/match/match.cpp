@@ -1,5 +1,4 @@
-﻿#define CPPHTTPLIB_OPENSSL_SUPPORT
-#include "httplib.h"
+﻿#include "../CurlWrapper.h"
 
 #include "Windows.h"
 #include <iostream>
@@ -155,8 +154,10 @@ bool Match::sendMatchInfo() {
         file << request.dump(4);
 #endif
 
-        httplib::Client client(url.c_str());
-        auto res = client.Post(path, body, "application/json");
+        auto res = CurlWrapper::Request(url, "POST", body);
+        if (!res.success) {
+            OutputDebugStringA("[DEBUG] POST request failed!\n");
+        }
 
         RankUI::g_MatchHistory.AddMatch(OppSteamID, result, timestamp);
         }).detach();

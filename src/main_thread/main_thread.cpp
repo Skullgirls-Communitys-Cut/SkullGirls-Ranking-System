@@ -1,10 +1,14 @@
-﻿#define CPPHTTPLIB_OPENSSL_SUPPORT
-#include "httplib.h"
+﻿#include "curl.h"
+#include "../CurlWrapper.h"
+#include <sstream>
 
 #include <Windows.h>
 
 #include "json.hpp"
 using json = nlohmann::json;
+
+#include <iostream>
+#include <string>
 
 
 #include "main_thread.h"
@@ -26,12 +30,14 @@ bool checkVersionAndUpdate(const std::string& url, const std::string& expected_v
 
 int MainThreadProc(HMODULE hModule) {
 	if (!ProcessManager::instance().ReadProcess()) {
+		curl_global_cleanup();
 		MessageBox(NULL, L"Error! Can't read process", L"Main Thread", MB_ICONERROR);
 		return -1;
 	};
 
 	int s_GameStatus;
 	InitializeHook();
+	curl_global_init(CURL_GLOBAL_DEFAULT);
 	NeedUpdate = checkVersionAndUpdate(VERSION_CHECK_URL, VERSION);
 	if (NeedUpdate) return -1;
 
@@ -93,24 +99,33 @@ bool InitializeHook() {
 }
 
 bool checkVersionAndUpdate(const std::string& url, const std::string& expected_version) {
-	httplib::Client cli(VERSION_CHECK_URL);
+	// Отправляем GET-запрос. В libcurl лучше передавать полный URL сразу
+	auto res = CurlWrapper::Request(VERSION_CHECK_URL VERSION_CHECK_PATH, "GET");
 
-	// Отправляем GET-запрос
-	auto res = cli.Get(VERSION_CHECK_PATH);
-	if (!res || res->status != 200) {
-		std::cerr << "HTTP error: " << (res ? std::to_string(res->status) : "no response") << std::endl;
+	std::stringstream ss;
+	//ss << "[DEBUG] Raw Body: |" << res.body << "|\n";
+	//ss << "[DEBUG] Body size: " << res.body.size() << "\n";
+
+	if (!res.success) {
+		std::cerr << "HTTP error: " << (res.status != 0 ? std::to_string(res.status) : "no response") << std::endl;
 		return true; // ошибка – считаем, что нужно обновление
 	}
 
 	try {
-		json data = json::parse(res->body);
-		if (!data.contains("version")) {
-			return true;
-		}
-		std::string remote_version = data["version"];
+		json data = json::parse(res.body);
+		//ss << "[DEBUG] JSON 'version' field: " << data["version"].dump() << "\n";
+
+		std::string remote_version = data.value("version", "");
+		//ss << "[DEBUG] remote_version: '" << remote_version << "' Len: " << remote_version.length() << "\n";
+		//ss << "[DEBUG] expected_version: '" << expected_version << "' Len: " << expected_version.length() << "\n";
+		//OutputDebugStringA(ss.str().c_str());
+
 		return remote_version != expected_version;
 	}
 	catch (const std::exception& e) {
+		//std::string err = "[DEBUG] JSON Error: ";
+		//err += e.what();
+		//OutputDebugStringA(err.c_str());
 		return true;
 	}
 }
