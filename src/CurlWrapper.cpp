@@ -58,7 +58,7 @@ CurlWrapper::Response CurlWrapper::Request(const std::string& url, const std::st
     else {
         // Соединение успешно, проверяем HTTP статус
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.status);
-        response.success = (response.status == 200);
+        response.success = (response.status >= 200 && response.status < 300);
 
         if (!response.success) {
             std::string err = "[HTTP ERROR] Status: " + std::to_string(response.status) + "\n";
