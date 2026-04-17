@@ -4,6 +4,7 @@
 #include <iostream>
 #include <chrono>
 #include <mutex>
+#include <fstream>
 
 #include "steam/steam_api.h"
 #include "json.hpp"
@@ -149,12 +150,18 @@ bool Match::sendMatchInfo() {
         std::string body = request.dump();
 
 
-#ifdef _DEBUG   
+#ifdef _DEBUG
+        std::string debug_body = request.dump(4);
+        OutputDebugStringA(("[DEBUG] Sending JSON: " + debug_body + "\n").c_str());
+
         std::ofstream file("output.json");
-        file << request.dump(4);
+        if (file.is_open()) {
+            file << debug_body;
+            file.close();
+        }
 #endif
 
-        auto res = CurlWrapper::Request(url, "POST", body);
+        auto res = CurlWrapper::Request(url + path, "POST", body, "application/json");
         if (!res.success) {
             OutputDebugStringA("[DEBUG] POST request failed!\n");
         }

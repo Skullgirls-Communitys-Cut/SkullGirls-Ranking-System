@@ -45,7 +45,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetName>dbghelp</TargetName>
-    <OutDir>..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\Skullgirls</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetName>dbghelp</TargetName>
@@ -61,15 +61,15 @@
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile />
-      <AdditionalIncludeDirectories>$(ProjectDir)external\curl\curl_output_x86\include\curl;$(ProjectDir)external\imgui;$(ProjectDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)external\OpenSSL-Win32\include;$(ProjectDir)external\curl\curl_output_x86\include\curl;$(ProjectDir)external\imgui;$(ProjectDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>$(ProjectDir)src\dll_proxy\dll_proxy.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>$(ProjectDir)external\curl\curl_output_x86\lib;$(ProjectDir)lib\steam;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>steam_api.lib;libcurl.lib;Ws2_32.lib;Wldap32.lib;Crypt32.lib;Normaliz.lib;Secur32.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)external\OpenSSL-Win32\lib\VC\x86\MT;$(ProjectDir)external\curl\curl_output_x86\lib;$(ProjectDir)lib\steam;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>steam_api.lib;libssl_static.lib;libcrypto_static.lib;libcurl.lib;Ws2_32.lib;Wldap32.lib;Crypt32.lib;Normaliz.lib;Secur32.lib;Iphlpapi.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -85,15 +85,15 @@
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile />
-      <AdditionalIncludeDirectories>$(ProjectDir)external\curl\curl_output_x86\include\curl;$(ProjectDir)external\imgui;$(ProjectDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)external\OpenSSL-Win32\include;$(ProjectDir)external\curl\curl_output_x86\include\curl;$(ProjectDir)external\imgui;$(ProjectDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>$(ProjectDir)src\dll_proxy\dll_proxy.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>$(ProjectDir)external\curl\curl_output_x86\lib;$(ProjectDir)lib\steam;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>steam_api.lib;libcurl.lib;Ws2_32.lib;Wldap32.lib;Crypt32.lib;Normaliz.lib;Secur32.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)external\OpenSSL-Win32\lib\VC\x86\MT;$(ProjectDir)external\curl\curl_output_x86\lib;$(ProjectDir)lib\steam;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>steam_api.lib;libssl_static.lib;libcrypto_static.lib;libcurl.lib;Ws2_32.lib;Wldap32.lib;Crypt32.lib;Normaliz.lib;Secur32.lib;Iphlpapi.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

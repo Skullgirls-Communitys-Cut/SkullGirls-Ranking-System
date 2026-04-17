@@ -13,6 +13,14 @@ CurlWrapper::Response CurlWrapper::Request(const std::string& url, const std::st
     CURL* curl = curl_easy_init();
     if (!curl) return response;
 
+#ifdef _DEBUG
+    FILE* logfile = fopen("curl_debug.txt", "a");
+    if (logfile) {
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        curl_easy_setopt(curl, CURLOPT_STDERR, logfile);
+    }
+#endif
+
     struct curl_slist* headers = nullptr;
     if (!body.empty() || method == "POST") {
         headers = curl_slist_append(headers, ("Content-Type: " + content_type).c_str());
@@ -25,11 +33,13 @@ CurlWrapper::Response CurlWrapper::Request(const std::string& url, const std::st
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response.body);
-    curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
-    curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA | CURLSSLOPT_NO_REVOKE);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
+    //curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
+    //curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NO_REVOKE | CURLSSLOPT_ALLOW_BEAST);
+    //curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_ALPN, 0L); // Отключаем расширения ALPN и HTTP2 для Schannel
+    //curl_easy_setopt(curl, CURLOPT_SSL_SESSIONID_CACHE, 0L);
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L); // Важно для многопоточности
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); // 1
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); // 2
     // Полезные настройки для стабильности
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 15L);
@@ -54,6 +64,10 @@ CurlWrapper::Response CurlWrapper::Request(const std::string& url, const std::st
             OutputDebugStringA(err.c_str());
         }
     }
+
+#ifdef _DEBUG
+    if (logfile) fclose(logfile);
+#endif
 
     if (headers) curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
