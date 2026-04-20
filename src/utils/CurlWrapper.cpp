@@ -14,27 +14,7 @@ CurlWrapper::Response CurlWrapper::Request(const std::string& url, const std::st
     CURL* curl = curl_easy_init();
     if (!curl) return response;
 
-    // Загружаем сертификат из ресурсов
-    HRSRC hRes = FindResource(g_hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
-    if (!hRes) {
-        OutputDebugStringA("[CURL ERROR] CA bundle resource not found\n");
-        curl_easy_cleanup(curl);
-        return response;
-    }
-    HGLOBAL hData = LoadResource(g_hModule, hRes);
-    void* pData = LockResource(hData);
-    DWORD dwSize = SizeofResource(g_hModule, hRes);
-    if (!pData || dwSize == 0) {
-        OutputDebugStringA("[CURL ERROR] CA bundle load failed\n");
-        curl_easy_cleanup(curl);
-        return response;
-    }
-
-    struct curl_blob blob;
-    blob.data = pData;
-    blob.len = dwSize;
-    blob.flags = CURL_BLOB_COPY;
-    curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &blob);
+    //curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &blob);
 
 #ifdef _DEBUG
     FILE* logfile = fopen("curl_debug.txt", "a");
@@ -55,8 +35,8 @@ CurlWrapper::Response CurlWrapper::Request(const std::string& url, const std::st
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response.body);
-	//curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA); // already set by CAINFO_BLOB
-    curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
+	curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
+    //curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
     //curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NO_REVOKE | CURLSSLOPT_ALLOW_BEAST);
     //curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_ALPN, 0L); // Отключаем расширения ALPN и HTTP2 для Schannel
     //curl_easy_setopt(curl, CURLOPT_SSL_SESSIONID_CACHE, 0L);

@@ -286,12 +286,12 @@ namespace RankUI {
                 ImGui::Text("");
 
                 // --- Тест POST-запроса ---
-#ifdef _DEBUG
+//#ifdef _DEBUG
                 if (ImGui::Button("Test POST Request")) {
                     LogToFile("Test POST button clicked");
                     TestPostRequest();
                 }
-#endif
+//#endif
                 // -------------------------
 
                 ImGui::TextDisabled("Version: %s", VERSION);
