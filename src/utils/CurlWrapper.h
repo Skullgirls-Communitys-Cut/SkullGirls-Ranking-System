@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <Windows.h>
+extern HMODULE g_hModule;
 
 class CurlWrapper {
 public:

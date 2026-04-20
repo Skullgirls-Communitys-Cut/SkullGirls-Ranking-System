@@ -1,5 +1,6 @@
 #include "CurlWrapper.h"
 #include <curl.h>
+#include "../resource.h"
 
 size_t CurlWrapper::WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
     size_t totalSize = size * nmemb;
@@ -13,12 +14,32 @@ CurlWrapper::Response CurlWrapper::Request(const std::string& url, const std::st
     CURL* curl = curl_easy_init();
     if (!curl) return response;
 
+    // Загружаем сертификат из ресурсов
+    HRSRC hRes = FindResource(g_hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
+    if (!hRes) {
+        OutputDebugStringA("[CURL ERROR] CA bundle resource not found\n");
+        curl_easy_cleanup(curl);
+        return response;
+    }
+    HGLOBAL hData = LoadResource(g_hModule, hRes);
+    void* pData = LockResource(hData);
+    DWORD dwSize = SizeofResource(g_hModule, hRes);
+    if (!pData || dwSize == 0) {
+        OutputDebugStringA("[CURL ERROR] CA bundle load failed\n");
+        curl_easy_cleanup(curl);
+        return response;
+    }
+
+    struct curl_blob blob;
+    blob.data = pData;
+    blob.len = dwSize;
+    blob.flags = CURL_BLOB_COPY;
+    curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &blob);
+
 #ifdef _DEBUG
     FILE* logfile = fopen("curl_debug.txt", "a");
-    if (logfile) {
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-        curl_easy_setopt(curl, CURLOPT_STDERR, logfile);
-    }
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+    if (logfile) curl_easy_setopt(curl, CURLOPT_STDERR, logfile);
 #endif
 
     struct curl_slist* headers = nullptr;
@@ -26,6 +47,7 @@ CurlWrapper::Response CurlWrapper::Request(const std::string& url, const std::st
         headers = curl_slist_append(headers, ("Content-Type: " + content_type).c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
     }
 
     if (method == "POST") curl_easy_setopt(curl, CURLOPT_POST, 1L);
@@ -33,8 +55,8 @@ CurlWrapper::Response CurlWrapper::Request(const std::string& url, const std::st
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response.body);
-    curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
-    //curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
+	//curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA); // already set by CAINFO_BLOB
+    curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
     //curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NO_REVOKE | CURLSSLOPT_ALLOW_BEAST);
     //curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_ALPN, 0L); // Отключаем расширения ALPN и HTTP2 для Schannel
     //curl_easy_setopt(curl, CURLOPT_SSL_SESSIONID_CACHE, 0L);

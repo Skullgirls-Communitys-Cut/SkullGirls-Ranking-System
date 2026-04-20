@@ -46,6 +46,9 @@
     <Filter Include="external\curl">
       <UniqueIdentifier>{7a409ef6-272e-4e83-b098-40aa4592659f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{4984603f-ef7a-4524-a025-2f7a850e5e3e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\json.hpp">
@@ -264,8 +267,17 @@
     <ClInclude Include="external\curl\curl_output_x86\include\curl\websockets.h">
       <Filter>external\curl</Filter>
     </ClInclude>
-    <ClInclude Include="src\CurlWrapper.h">
+    <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\cs_lock.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\CurlWrapper.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\logger.h">
+      <Filter>utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -314,8 +326,8 @@
     <ClCompile Include="SUPER_SECRET_KEY.cpp">
       <Filter>SUPER_SECRET_KEY</Filter>
     </ClCompile>
-    <ClCompile Include="src\CurlWrapper.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\utils\CurlWrapper.cpp">
+      <Filter>utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -325,5 +337,10 @@
     <None Include="external\steam\steam_api.json">
       <Filter>external\steam</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Danisen.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

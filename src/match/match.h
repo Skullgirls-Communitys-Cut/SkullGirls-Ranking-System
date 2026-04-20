@@ -3,11 +3,12 @@
 #include "steam/steam_api.h"
 #include <stddef.h>
 #include "Windows.h"
-#include <mutex>
 
 #include "json.hpp"
+#include "../utils/cs_lock.h"
 
 #define MAX_PLAYABLE_CHARACTERS 6
+void TestPostRequest();
 
 class Match {
 public:
@@ -16,6 +17,7 @@ public:
     void updateCounter() { matchCount++; }
     void SetCanSendMatch(bool NewValue) { CanSendMatch = NewValue; }
     CSteamID getLobbyID(){ return lobbyID; }
+    void Init() { InitializeCriticalSection(&sendCS); }
 
 private:
     STEAM_CALLBACK(Match, OnLobbyChatMessage, LobbyChatMsg_t); // коллбек сообщений в чате лобби
@@ -33,7 +35,8 @@ private:
 
     bool CanSendMatch = true;
 
-    static std::recursive_mutex sendMutex;
+    //static std::recursive_mutex sendMutex;
+    static CRITICAL_SECTION sendCS;
 };
 
 extern Match g_CurrentMatch;

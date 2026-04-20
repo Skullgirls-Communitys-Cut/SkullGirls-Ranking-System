@@ -161,7 +161,7 @@
     <ClInclude Include="external\steam\steam_api_flat.h" />
     <ClInclude Include="external\steam\steam_api_internal.h" />
     <ClInclude Include="external\steam\steam_gameserver.h" />
-    <ClInclude Include="src\CurlWrapper.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="src\dll_proxy\dll_proxy.h" />
     <ClInclude Include="src\main_thread\main_thread.h" />
     <ClInclude Include="src\match\match.h" />
@@ -169,6 +169,9 @@
     <ClInclude Include="src\process\process.h" />
     <ClInclude Include="src\UI\d3d9Wrapper.h" />
     <ClInclude Include="src\UI\UI.h" />
+    <ClInclude Include="src\utils\cs_lock.h" />
+    <ClInclude Include="src\utils\CurlWrapper.h" />
+    <ClInclude Include="src\utils\logger.h" />
     <ClInclude Include="SUPER_SECRET_KEY.h" />
   </ItemGroup>
   <ItemGroup>
@@ -179,7 +182,6 @@
     <ClCompile Include="external\imgui\imgui_draw.cpp" />
     <ClCompile Include="external\imgui\imgui_tables.cpp" />
     <ClCompile Include="external\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="src\CurlWrapper.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\dll_proxy\dll_proxy.cpp" />
     <ClCompile Include="src\main_thread\main_thread.cpp" />
@@ -187,11 +189,15 @@
     <ClCompile Include="src\process\process.cpp" />
     <ClCompile Include="src\UI\d3d9Wrapper.cpp" />
     <ClCompile Include="src\UI\UI.cpp" />
+    <ClCompile Include="src\utils\CurlWrapper.cpp" />
     <ClCompile Include="SUPER_SECRET_KEY.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="external\steam\steam_api.json" />
     <None Include="src\dll_proxy\dll_proxy.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Danisen.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

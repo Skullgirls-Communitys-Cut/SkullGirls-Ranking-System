@@ -1,5 +1,5 @@
 ﻿#include "curl.h"
-#include "../CurlWrapper.h"
+#include "../utils/CurlWrapper.h"
 #include <sstream>
 
 #include <Windows.h>
@@ -18,6 +18,7 @@ using json = nlohmann::json;
 #include "../match/match.h"
 #include "../UI/d3d9Wrapper.h"
 #include "../../SUPER_SECRET_KEY.h"
+#include "../utils/logger.h"
 
 std::atomic<bool> MainThreadShouldStop = false;
 std::atomic<bool> MainThreadMatchReaded = false;
@@ -38,6 +39,7 @@ int MainThreadProc(HMODULE hModule) {
 	int s_GameStatus;
 	InitializeHook();
 	curl_global_init(CURL_GLOBAL_DEFAULT);
+	g_CurrentMatch.Init();
 	NeedUpdate = checkVersionAndUpdate(VERSION_CHECK_URL, VERSION);
 	if (NeedUpdate) return -1;
 
@@ -60,7 +62,9 @@ int MainThreadProc(HMODULE hModule) {
 		}
 		// Если мы НЕ в матче И читали персонажей (значит были в матче!)
 		else if (s_GameStatus != GAME_STATUS_MATCH_STARTED && MainThreadMatchReaded) {
+			LogToFile("Before sendMatchInfo");
 			g_CurrentMatch.sendMatchInfo();
+			LogToFile("After sendMatchInfo");
 			MainThreadMatchReaded = false;
 		}
 		Sleep(10);
