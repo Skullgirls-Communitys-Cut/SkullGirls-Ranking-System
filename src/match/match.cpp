@@ -4,6 +4,7 @@
 #include <iostream>
 #include <chrono>
 #include <fstream>
+#include <thread>
 
 #include "steam/steam_api.h"
 #include "json.hpp"

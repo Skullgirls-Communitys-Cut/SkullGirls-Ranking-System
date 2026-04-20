@@ -40,6 +40,7 @@ int MainThreadProc(HMODULE hModule) {
 	InitializeHook();
 	curl_global_init(CURL_GLOBAL_DEFAULT);
 	g_CurrentMatch.Init();
+	InitializeCriticalSection(&MemoryWorker::Detail::cacheMutex);
 	NeedUpdate = checkVersionAndUpdate(VERSION_CHECK_URL, VERSION);
 	if (NeedUpdate) return -1;
 
