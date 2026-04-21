@@ -337,6 +337,10 @@
     <None Include="external\steam\steam_api.json">
       <Filter>external\steam</Filter>
     </None>
+    <None Include="external\cacert.pem" />
+    <None Include="rcdata1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Danisen.rc">

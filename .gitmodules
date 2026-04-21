@@ -3,3 +3,7 @@
 	url = https://github.com/curl/curl.git
 	branch = master
 	commit = 8c908d2d0a6d32abdedda2c52e90bd56ec76c24d
+[submodule "external/mbedtls"]
+	path = external/mbedtls
+	url = https://github.com/Mbed-TLS/mbedtls.git
+	branch = v3.6.6

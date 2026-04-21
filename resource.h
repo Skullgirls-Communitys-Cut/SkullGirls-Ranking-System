@@ -2,6 +2,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by Danisen.rc
 //
+#define IDR_CACERT_PEM                  103
 
 // Next default values for new objects
 // 
