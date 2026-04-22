@@ -1,5 +1,8 @@
 ﻿/.vs
 /Release
+/Debug
 /Danisen
 TODO.txt
 SUPER_SECRET_KEY.*
+Danisen.aps
+/_curl_build_temp

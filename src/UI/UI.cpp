@@ -10,6 +10,7 @@
 #include "../match/match.h"
 #include "../../env.h"
 #include "../../src/main_thread/main_thread.h"
+#include "../utils/logger.h"
 
 
 namespace imgui_show {
@@ -283,6 +284,15 @@ namespace RankUI {
                 g_MatchHistory.RenderHistory();
 
                 ImGui::Text("");
+
+                // --- Тест POST-запроса ---
+//#ifdef _DEBUG
+                if (ImGui::Button("Test POST Request")) {
+                    LogToFile("Test POST button clicked");
+                    TestPostRequest();
+                }
+//#endif
+                // -------------------------
 
                 ImGui::TextDisabled("Version: %s", VERSION);
 

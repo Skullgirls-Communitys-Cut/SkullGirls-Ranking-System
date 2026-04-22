@@ -43,6 +43,12 @@
     <Filter Include="SUPER_SECRET_KEY">
       <UniqueIdentifier>{f1f3a07e-348d-4ac7-bd39-90d4328279e8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="external\curl">
+      <UniqueIdentifier>{7a409ef6-272e-4e83-b098-40aa4592659f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{4984603f-ef7a-4524-a025-2f7a850e5e3e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\json.hpp">
@@ -225,6 +231,54 @@
     <ClInclude Include="SUPER_SECRET_KEY.h">
       <Filter>SUPER_SECRET_KEY</Filter>
     </ClInclude>
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\curl.h">
+      <Filter>external\curl</Filter>
+    </ClInclude>
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\curlver.h">
+      <Filter>external\curl</Filter>
+    </ClInclude>
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\easy.h">
+      <Filter>external\curl</Filter>
+    </ClInclude>
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\header.h">
+      <Filter>external\curl</Filter>
+    </ClInclude>
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\mprintf.h">
+      <Filter>external\curl</Filter>
+    </ClInclude>
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\multi.h">
+      <Filter>external\curl</Filter>
+    </ClInclude>
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\options.h">
+      <Filter>external\curl</Filter>
+    </ClInclude>
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\stdcheaders.h">
+      <Filter>external\curl</Filter>
+    </ClInclude>
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\system.h">
+      <Filter>external\curl</Filter>
+    </ClInclude>
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\typecheck-gcc.h">
+      <Filter>external\curl</Filter>
+    </ClInclude>
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\urlapi.h">
+      <Filter>external\curl</Filter>
+    </ClInclude>
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\websockets.h">
+      <Filter>external\curl</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\cs_lock.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\CurlWrapper.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\logger.h">
+      <Filter>utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.cpp">
@@ -272,6 +326,9 @@
     <ClCompile Include="SUPER_SECRET_KEY.cpp">
       <Filter>SUPER_SECRET_KEY</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\CurlWrapper.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\dll_proxy\dll_proxy.def">
@@ -280,5 +337,14 @@
     <None Include="external\steam\steam_api.json">
       <Filter>external\steam</Filter>
     </None>
+    <None Include="external\cacert.pem" />
+    <None Include="rcdata1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Danisen.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

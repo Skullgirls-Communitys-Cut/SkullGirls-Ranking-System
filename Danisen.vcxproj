@@ -21,15 +21,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -45,7 +45,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetName>dbghelp</TargetName>
-    <OutDir>..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\Skullgirls</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetName>dbghelp</TargetName>
@@ -54,22 +54,22 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;DANISEN_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB;_DEBUG;DANISEN_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile />
-      <AdditionalIncludeDirectories>$(ProjectDir)external\OpenSSL-Win32\include;$(ProjectDir)external\imgui;$(ProjectDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)external\curl\curl_output_x86\include\curl;$(ProjectDir)external\imgui;$(ProjectDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>$(ProjectDir)src\dll_proxy\dll_proxy.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>$(ProjectDir)external\OpenSSL-Win32\lib\VC\x86\MT;$(ProjectDir)lib\steam;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>steam_api.lib;libssl_static.lib;libcrypto_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)external\curl\curl_output_x86\lib;$(ProjectDir)lib\steam;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>steam_api.lib;mbedtls.lib;mbedx509.lib;mbedcrypto.lib;libcurl.lib;Ws2_32.lib;Wldap32.lib;Crypt32.lib;Normaliz.lib;Secur32.lib;Iphlpapi.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -78,26 +78,38 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;DANISEN_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB;NDEBUG;DANISEN_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile />
-      <AdditionalIncludeDirectories>$(ProjectDir)external\OpenSSL-Win32\include;$(ProjectDir)external\imgui;$(ProjectDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)external\curl\curl_output_x86\include\curl;$(ProjectDir)external\imgui;$(ProjectDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>$(ProjectDir)src\dll_proxy\dll_proxy.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>$(ProjectDir)external\OpenSSL-Win32\lib\VC\x86\MT;$(ProjectDir)lib\steam;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>steam_api.lib;libssl_static.lib;libcrypto_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)external\curl\curl_output_x86\lib;$(ProjectDir)lib\steam;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>steam_api.lib;mbedtls.lib;mbedx509.lib;mbedcrypto.lib;libcurl.lib;Ws2_32.lib;Wldap32.lib;Crypt32.lib;Normaliz.lib;Secur32.lib;Iphlpapi.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="env.h" />
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\curl.h" />
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\curlver.h" />
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\easy.h" />
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\header.h" />
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\mprintf.h" />
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\multi.h" />
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\options.h" />
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\stdcheaders.h" />
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\system.h" />
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\typecheck-gcc.h" />
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\urlapi.h" />
+    <ClInclude Include="external\curl\curl_output_x86\include\curl\websockets.h" />
     <ClInclude Include="external\imgui\imconfig.h" />
     <ClInclude Include="external\imgui\imgui.h" />
     <ClInclude Include="external\imgui\imgui_internal.h" />
@@ -149,6 +161,7 @@
     <ClInclude Include="external\steam\steam_api_flat.h" />
     <ClInclude Include="external\steam\steam_api_internal.h" />
     <ClInclude Include="external\steam\steam_gameserver.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="src\dll_proxy\dll_proxy.h" />
     <ClInclude Include="src\main_thread\main_thread.h" />
     <ClInclude Include="src\match\match.h" />
@@ -156,6 +169,9 @@
     <ClInclude Include="src\process\process.h" />
     <ClInclude Include="src\UI\d3d9Wrapper.h" />
     <ClInclude Include="src\UI\UI.h" />
+    <ClInclude Include="src\utils\cs_lock.h" />
+    <ClInclude Include="src\utils\CurlWrapper.h" />
+    <ClInclude Include="src\utils\logger.h" />
     <ClInclude Include="SUPER_SECRET_KEY.h" />
   </ItemGroup>
   <ItemGroup>
@@ -173,11 +189,17 @@
     <ClCompile Include="src\process\process.cpp" />
     <ClCompile Include="src\UI\d3d9Wrapper.cpp" />
     <ClCompile Include="src\UI\UI.cpp" />
+    <ClCompile Include="src\utils\CurlWrapper.cpp" />
     <ClCompile Include="SUPER_SECRET_KEY.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="external\cacert.pem" />
     <None Include="external\steam\steam_api.json" />
+    <None Include="rcdata1.bin" />
     <None Include="src\dll_proxy\dll_proxy.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Danisen.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

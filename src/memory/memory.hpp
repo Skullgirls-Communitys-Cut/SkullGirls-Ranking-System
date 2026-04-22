@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
-#include <mutex>
+#include "../utils/cs_lock.h"
 
 namespace MemoryWorker {
     // =============== ПРОСТРАНСТВО ИМЕН ДЛЯ ВНУТРЕННЕЙ РЕАЛИЗАЦИИ ===============
@@ -36,7 +36,8 @@ namespace MemoryWorker {
 
         // Статические переменные для кэша (inline для C++17+)
         inline std::unordered_map<AddressCacheKey, uintptr_t, AddressCacheHasher> addressCache;
-        inline std::mutex cacheMutex;
+        //inline std::mutex cacheMutex;
+        inline CRITICAL_SECTION cacheMutex;
 
         // =============== ОБЪЯВЛЕНИЯ ВСПОМОГАТЕЛЬНЫХ ФУНКЦИЙ ===============
         inline bool CalculateFinalAddress(HANDLE hProcess, uintptr_t baseAddress,
@@ -145,7 +146,8 @@ namespace MemoryWorker {
                 AddressCacheKey key{ hProcess, baseAddress, offsets };
 
                 {
-                    std::lock_guard<std::mutex> lock(cacheMutex);
+                    //std::lock_guard<std::mutex> lock(cacheMutex);
+                    CSLock lock(cacheMutex);
                     auto it = addressCache.find(key);
                     if (it != addressCache.end()) {
                         finalAddress = it->second;
@@ -154,7 +156,8 @@ namespace MemoryWorker {
                 }
 
                 if (CalculateFinalAddress(hProcess, baseAddress, offsets, finalAddress)) {
-                    std::lock_guard<std::mutex> lock(cacheMutex);
+                    //std::lock_guard<std::mutex> lock(cacheMutex);
+                    CSLock lock(cacheMutex);
                     addressCache[key] = finalAddress;
                     return true;
                 }
@@ -165,7 +168,8 @@ namespace MemoryWorker {
         }
 
         inline void ClearAddressCache() {
-            std::lock_guard<std::mutex> lock(cacheMutex);
+            //std::lock_guard<std::mutex> lock(cacheMutex);
+            CSLock lock(cacheMutex);
             addressCache.clear();
         }
     }

@@ -7,6 +7,7 @@
 
 bool IsSGLoadThisDLL();
 HANDLE hMainThread;
+HMODULE g_hModule = NULL;
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -21,6 +22,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
             MessageBox(NULL, L"This DLL loaded not by Skullgirls!\nPlease, delete d3d9.dll from this folder!", NULL, MB_ICONERROR);
             return FALSE;
         }
+        g_hModule = hModule;
         if (!LoadOriginalLibrary()) {
             return FALSE;
         }
