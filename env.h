@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #define SG_NAME L"SkullGirls.exe"
+#define LOBBY_TYPE_QUICK_MATCH 0
 #define LOBBY_TYPE_ALL_PLAY 1
 
 #define API_URL "https://skullgirlscommunity.com"
