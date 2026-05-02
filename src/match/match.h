@@ -15,7 +15,6 @@ struct LobbyMember {
     bool rankedEnabled;
     std::string rankedVersion;
 };
-std::vector<LobbyMember> m_lobbyMembers;
 
 class Match {
 public:
@@ -40,6 +39,7 @@ private:
     void ReadCharacterNames();
     nlohmann::json GenerateCharacterNames(bool WeAreFirstPlayer) const;
     std::optional<std::string> Character_Names[MAX_PLAYABLE_CHARACTERS];
+    std::vector<LobbyMember> m_lobbyMembers;
 
     int matchCount = 0;  
 
