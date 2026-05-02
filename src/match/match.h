@@ -10,6 +10,13 @@
 #define MAX_PLAYABLE_CHARACTERS 6
 void TestPostRequest();
 
+struct LobbyMember {
+    CSteamID steamID;
+    bool rankedEnabled;
+    std::string rankedVersion;
+};
+std::vector<LobbyMember> m_lobbyMembers;
+
 class Match {
 public:
     
@@ -18,10 +25,13 @@ public:
     void SetCanSendMatch(bool NewValue) { CanSendMatch = NewValue; }
     CSteamID getLobbyID(){ return lobbyID; }
     void Init() { InitializeCriticalSection(&sendCS); }
+    const std::vector<LobbyMember>& GetLobbyMembers() const { return m_lobbyMembers; }
 
 private:
     STEAM_CALLBACK(Match, OnLobbyChatMessage, LobbyChatMsg_t); // коллбек сообщений в чате лобби
     STEAM_CALLBACK(Match, OnLobbyEnter, LobbyEnter_t); //коллбек входа в лобби
+    STEAM_CALLBACK(Match, OnLobbyChatUpdate, LobbyChatUpdate_t); // коллбек для обновления чата лобби при входе/выходе игроков
+    STEAM_CALLBACK(Match, OnLobbyDataUpdate, LobbyDataUpdate_t); // коллбек для обновления данных лобби при изменении метаданных
 
     CSteamID lobbyID;
     CSteamID player1SteamID;
@@ -35,7 +45,6 @@ private:
 
     bool CanSendMatch = true;
 
-    //static std::recursive_mutex sendMutex;
     static CRITICAL_SECTION sendCS;
 };
 

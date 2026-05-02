@@ -264,6 +264,7 @@ namespace RankUI {
                 ImGui::Text("Please update Ranked Mod from");
                 ImGui::SameLine();
                 ImGui::TextLinkOpenURL("github page", "https://github.com/Skullgirls-Communitys-Cut/SkullGirls-Ranking-System/releases/latest");
+                ImGui::TextDisabled("Current version: %s", VERSION);
                 ImGui::End();
             }
             else {
@@ -274,7 +275,7 @@ namespace RankUI {
 
                 const char* roomTypeStr = SteamMatchmaking()->GetLobbyData(g_CurrentMatch.getLobbyID(), "RoomType");
                 int RoomType = (roomTypeStr && roomTypeStr[0]) ? atoi(roomTypeStr) : 0;
-                if (RoomType != LOBBY_TYPE_ALL_PLAY) {
+                if (RoomType != LOBBY_TYPE_ALL_PLAY or LOBBY_TYPE_QUICK_MATCH) {
                     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "You are playing in the wrong lobby type!");
                 }
 
@@ -286,13 +287,17 @@ namespace RankUI {
                 ImGui::Text("");
 
                 // --- Тест POST-запроса ---
-//#ifdef _DEBUG
+#ifdef _DEBUG
                 if (ImGui::Button("Test POST Request")) {
                     LogToFile("Test POST button clicked");
                     TestPostRequest();
                 }
-//#endif
+#endif
                 // -------------------------
+
+                //for (const auto& member : g_CurrentMatch.GetLobbyMembers()) {
+                //    // отображаем member.steamID и member.rankedEnabled
+                //}
 
                 ImGui::TextDisabled("Version: %s", VERSION);
 

@@ -70,6 +70,7 @@ int MainThreadProc(HMODULE hModule) {
 		}
 		Sleep(10);
 	}
+	return 0;
 }
 
 bool InitializeHook() {
@@ -127,7 +128,7 @@ bool checkVersionAndUpdate(const std::string& url, const std::string& expected_v
 
 		return remote_version != expected_version;
 	}
-	catch (const std::exception& e) {
+	catch (const std::exception&) {
 		//std::string err = "[DEBUG] JSON Error: ";
 		//err += e.what();
 		//OutputDebugStringA(err.c_str());

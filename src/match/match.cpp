@@ -5,6 +5,7 @@
 #include <chrono>
 #include <fstream>
 #include <thread>
+#include <algorithm>
 
 #include "steam/steam_api.h"
 #include "json.hpp"
@@ -100,10 +101,9 @@ bool Match::sendMatchInfo() {
 
     const char* roomTypeStr = SteamMatchmaking()->GetLobbyData(lobbyID, "RoomType");
     int RoomType = (roomTypeStr && roomTypeStr[0]) ? atoi(roomTypeStr) : 0;
-    if (RoomType != LOBBY_TYPE_ALL_PLAY) return false;
+    if (RoomType != LOBBY_TYPE_ALL_PLAY or LOBBY_TYPE_QUICK_MATCH) return false;
     LogToFile("RoomType OK: " + std::to_string(RoomType));
 
-    // Формируем все данные под мьютексом, чтобы гарантировать консистентность
     long long timestamp = std::time(nullptr);
     long long mySteamIDuint64 = SteamUser()->GetSteamID().ConvertToUint64();
 
@@ -118,6 +118,19 @@ bool Match::sendMatchInfo() {
     int OppLoc = (OpplocStr && OpplocStr[0]) ? atoi(OpplocStr) : 0;
 
     bool WeAreFirstPlayer = (OppSteamID == player2SteamID) ? true : false;
+
+    // ищем текущего оппонента из лобби
+    auto it = std::find_if(m_lobbyMembers.begin(), m_lobbyMembers.end(),
+        [&OppSteamID](const LobbyMember& m) {
+            return m.steamID == OppSteamID;
+        });
+
+    // проверяем данные оппонента
+    if (it == m_lobbyMembers.end() || it->rankedVersion.empty() || !it->rankedEnabled) {
+        LogToFile("Opponent has no mod or ranked disabled, skipping");
+        return false;
+    }
+    LogToFile("Opponent ranked check OK");
 
     int resultMemory;
     MemoryWorker::ReadProcessMemoryWithOffsets(
@@ -285,8 +298,81 @@ void Match::OnLobbyChatMessage(LobbyChatMsg_t* pCallback) {
 void Match::OnLobbyEnter(LobbyEnter_t* pCallback) {
     if (pCallback->m_EChatRoomEnterResponse == k_EChatRoomEnterResponseSuccess) {
         lobbyID = CSteamID(pCallback->m_ulSteamIDLobby);
+
+        SteamMatchmaking()->SetLobbyMemberData(lobbyID, "ranked_version", VERSION);
+        SteamMatchmaking()->SetLobbyMemberData(
+            lobbyID, "ranked_enabled", CanSendMatch ? "1" : "0");
+
+        // читаем тех кто уже есть в лобби используя m_lobbyMembers для сохранения всех игроков
+        m_lobbyMembers.clear();
+        int memberCount = SteamMatchmaking()->GetNumLobbyMembers(lobbyID);
+        for (int i = 0; i < memberCount; i++) {
+            CSteamID memberID = SteamMatchmaking()->GetLobbyMemberByIndex(lobbyID, i);
+
+            const char* version = SteamMatchmaking()->GetLobbyMemberData(
+                lobbyID, memberID, "ranked_version");
+            const char* ranked = SteamMatchmaking()->GetLobbyMemberData(
+                lobbyID, memberID, "ranked_enabled");
+
+            LobbyMember member;
+            member.steamID = memberID;
+            member.rankedVersion = (version && strlen(version) > 0) ? version : "";
+            member.rankedEnabled = (ranked && strcmp(ranked, "1") == 0);
+            m_lobbyMembers.push_back(member);
+        }
     }
     else {
         lobbyID = k_steamIDNil;
+        m_lobbyMembers.clear();
+    }
+}
+
+void Match::OnLobbyChatUpdate(LobbyChatUpdate_t* pCallback){
+    // Кто изменил состояние
+    CSteamID changedUser(pCallback->m_ulSteamIDUserChanged);
+
+    if (pCallback->m_rgfChatMemberStateChange & k_EChatMemberStateChangeEntered) {
+        // Читаем данные нового игрока и добавляем в список
+        const char* version = SteamMatchmaking()->GetLobbyMemberData(
+            lobbyID, changedUser, "ranked_version");
+        const char* ranked = SteamMatchmaking()->GetLobbyMemberData(
+            lobbyID, changedUser, "ranked_enabled");
+
+        LobbyMember member;
+        member.steamID = changedUser;
+        member.rankedVersion = (version && strlen(version) > 0) ? version : "";
+        member.rankedEnabled = (ranked && strcmp(ranked, "1") == 0);
+        m_lobbyMembers.push_back(member);
+    }
+    else if (pCallback->m_rgfChatMemberStateChange &
+        (k_EChatMemberStateChangeLeft | k_EChatMemberStateChangeDisconnected)) {
+        // Удаляем вышедшего игрока из списка
+        m_lobbyMembers.erase(
+            std::remove_if(m_lobbyMembers.begin(), m_lobbyMembers.end(),
+                [&changedUser](const LobbyMember& m) {
+                    return m.steamID == changedUser;
+                }),
+            m_lobbyMembers.end()
+        );
+    }
+}
+
+void Match::OnLobbyDataUpdate(LobbyDataUpdate_t* pCallback) {
+    // m_bSuccess — данные обновились успешно
+    // m_ulSteamIDMember — чьи данные изменились
+    // m_ulSteamIDLobby — какое лобби
+
+    if (!pCallback->m_bSuccess) return;
+
+    CSteamID changedMember(pCallback->m_ulSteamIDMember);
+
+    // Находим игрока в списке и обновляем его данные
+    for (auto& member : m_lobbyMembers) {
+        if (member.steamID == changedMember) {
+            const char* ranked = SteamMatchmaking()->GetLobbyMemberData(
+                lobbyID, changedMember, "ranked_enabled");
+            member.rankedEnabled = (ranked && strcmp(ranked, "1") == 0);
+            break;
+        }
     }
 }
