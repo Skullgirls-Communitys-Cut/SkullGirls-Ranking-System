@@ -18,6 +18,7 @@ using json = nlohmann::json;
 #include "../process/process.h"
 #include "../UI/UI.h"
 #include "../utils/logger.h"
+#include "../main_thread/main_thread.h"
 
 Match g_CurrentMatch;
 //std::recursive_mutex Match::sendMutex;
@@ -100,7 +101,7 @@ bool Match::sendMatchInfo() {
     LogToFile("RequestTicket called");
 
     const char* roomTypeStr = SteamMatchmaking()->GetLobbyData(lobbyID, "RoomType");
-    int RoomType = (roomTypeStr && roomTypeStr[0]) ? atoi(roomTypeStr) : 0;
+    int RoomType = (roomTypeStr && roomTypeStr[0]) ? atoi(roomTypeStr) : -1;
     if (RoomType != LOBBY_TYPE_ALL_PLAY && RoomType != LOBBY_TYPE_QUICK_MATCH) return false;
     LogToFile("RoomType OK: " + std::to_string(RoomType));
 
@@ -109,6 +110,10 @@ bool Match::sendMatchInfo() {
 
     const char* oppStr = SteamMatchmaking()->GetLobbyMemberData(lobbyID, SteamUser()->GetSteamID(), "Opp");
     CSteamID OppSteamID = (oppStr && oppStr[0]) ? CSteamID(strtoull(oppStr, nullptr, 10)) : k_steamIDNil;
+    if (OppSteamID == k_steamIDNil) {
+        LogToFile("OppSteamID is nil, skipping"); // добавлено на время тестирования квик матчей
+        return false;
+    }
     long long OppSteamIDuint64 = OppSteamID.ConvertToUint64();
 
     const char* MylocStr = SteamMatchmaking()->GetLobbyMemberData(lobbyID, SteamUser()->GetSteamID(), "Loc");
@@ -162,11 +167,11 @@ bool Match::sendMatchInfo() {
 
     int result = convertMatchResult(resultMemory, WeAreFirstPlayer);
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
     LogToFile("WeAreFirstPlayer: " + std::to_string(WeAreFirstPlayer));
     LogToFile("resultMemory: " + std::to_string(resultMemory));
     LogToFile("result after convert: " + std::to_string(result));
-#endif
+//#endif
 
     ReadCharacterNames();
     LogToFile("ReadCharacterNames done");
@@ -205,7 +210,7 @@ bool Match::sendMatchInfo() {
         std::string body = request.dump();
         LogToFile("JSON serialized, body size: " + std::to_string(body.size()));
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
         std::string debug_body = request.dump(4);
         OutputDebugStringA(("[DEBUG] Sending JSON: " + debug_body + "\n").c_str());
 
@@ -214,7 +219,7 @@ bool Match::sendMatchInfo() {
             file << debug_body;
             file.close();
         }
-#endif
+//#endif
 
         auto res = CurlWrapper::Request(url + path, "POST", body, "application/json");
         LogToFile("Request done, status: " + std::to_string(res.status));
@@ -287,7 +292,7 @@ void Match::OnLobbyChatMessage(LobbyChatMsg_t* pCallback) {
         sizeof(Message),
         NULL
     );
-
+    LogToFile("OnLobbyChatMessage");
     if (memcmp(Message, "MINF", 4) == 0) {
         uint64_t steamID64P1 = 0;
         uint64_t steamID64P2 = 0;
@@ -319,7 +324,13 @@ void Match::OnLobbyChatMessage(LobbyChatMsg_t* pCallback) {
 
 
 void Match::OnLobbyEnter(LobbyEnter_t* pCallback) {
+    static bool hooked = false;
+    if (!hooked) {
+        HookSteamMatchmaking();
+        hooked = true;
+    }
     if (pCallback->m_EChatRoomEnterResponse == k_EChatRoomEnterResponseSuccess) {
+        LogToFile("OnLobbyEnter");
         lobbyID = CSteamID(pCallback->m_ulSteamIDLobby);
 
         SteamMatchmaking()->SetLobbyMemberData(lobbyID, "ranked_version", VERSION);
@@ -354,7 +365,16 @@ void Match::OnLobbyChatUpdate(LobbyChatUpdate_t* pCallback){
     // Кто изменил состояние
     CSteamID changedUser(pCallback->m_ulSteamIDUserChanged);
 
+    // Если вышли мы сами — сбрасываем состояние
+    if (changedUser == SteamUser()->GetSteamID() &&
+        pCallback->m_rgfChatMemberStateChange &
+        (k_EChatMemberStateChangeLeft | k_EChatMemberStateChangeDisconnected)) {
+        lobbyID = k_steamIDNil;
+        m_lobbyMembers.clear();
+        return;
+    }
     if (pCallback->m_rgfChatMemberStateChange & k_EChatMemberStateChangeEntered) {
+        LogToFile("OnLobbyChatUpdate: Member Entered");
         // Читаем данные нового игрока и добавляем в список
         const char* version = SteamMatchmaking()->GetLobbyMemberData(
             lobbyID, changedUser, "ranked_version");
@@ -377,6 +397,7 @@ void Match::OnLobbyChatUpdate(LobbyChatUpdate_t* pCallback){
                 }),
             m_lobbyMembers.end()
         );
+        LogToFile("OnLobbyChatUpdate: Member Left or Disconnected");
     }
 }
 
@@ -395,6 +416,7 @@ void Match::OnLobbyDataUpdate(LobbyDataUpdate_t* pCallback) {
             const char* ranked = SteamMatchmaking()->GetLobbyMemberData(
                 lobbyID, changedMember, "ranked_enabled");
             member.rankedEnabled = (ranked && strcmp(ranked, "1") == 0);
+            LogToFile("OnLobbyDataUpdate for lobby member");
             break;
         }
     }

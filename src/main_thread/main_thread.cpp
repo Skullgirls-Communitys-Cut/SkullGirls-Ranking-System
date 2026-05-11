@@ -29,6 +29,77 @@ std::atomic<bool> NeedUpdate = false;
 bool InitializeHook();
 bool checkVersionAndUpdate(const std::string& url, const std::string& expected_version);
 
+// Тип функции
+//typedef const char* (S_CALLTYPE* GetLobbyMemberData_t)(
+//	ISteamMatchmaking*, CSteamID, CSteamID, const char*);
+//
+//GetLobbyMemberData_t OriginalGetLobbyMemberData = nullptr;
+//
+//typedef void (S_CALLTYPE* SetLobbyMemberData_t)(
+//	ISteamMatchmaking*, CSteamID, const char*, const char*);
+//
+//SetLobbyMemberData_t OriginalSetLobbyMemberData = nullptr;
+
+// Наш перехватчик Get
+typedef const char* (__fastcall* GetLobbyMemberData_t)(
+	ISteamMatchmaking*, void*, CSteamID, CSteamID, const char*);
+
+GetLobbyMemberData_t OriginalGetLobbyMemberData = nullptr;
+
+const char* __fastcall HookedGetLobbyMemberData(
+	ISteamMatchmaking* self, void* edx_unused,
+	CSteamID lobbyID, CSteamID steamID, const char* key) {
+
+	const char* result = OriginalGetLobbyMemberData(self, edx_unused, lobbyID, steamID, key);
+	LogToFile(std::string("GetLobbyMemberData key=") + key +
+		" result=" + (result ? result : "null"));
+	return result;
+}
+
+// Set
+typedef void(__fastcall* SetLobbyMemberData_t)(
+	ISteamMatchmaking*, void*, CSteamID, const char*, const char*);
+
+SetLobbyMemberData_t OriginalSetLobbyMemberData = nullptr;
+
+void __fastcall HookedSetLobbyMemberData(
+	ISteamMatchmaking* self, void* edx_unused,
+	CSteamID lobbyID, const char* key, const char* value) {
+
+	LogToFile(std::string("SetLobbyMemberData key=") + key +
+		" value=" + (value ? value : "null"));
+	OriginalSetLobbyMemberData(self, edx_unused, lobbyID, key, value);
+}
+
+// Установка хука
+void HookSteamMatchmaking() {
+	LogToFile("HookSteamMatchmaking called");
+
+	ISteamMatchmaking* mm = SteamMatchmaking();
+	if (!mm) {
+		LogToFile("SteamMatchmaking() returned null!");
+		return;
+	}
+	LogToFile("SteamMatchmaking OK, patching vtable...");
+
+	void** vtable = *(void***)mm;
+	LogToFile("vtable address: " + std::to_string((uintptr_t)vtable));
+
+	DWORD oldProtect;
+
+	VirtualProtect(&vtable[24], sizeof(void*), PAGE_READWRITE, &oldProtect);
+	OriginalGetLobbyMemberData = (GetLobbyMemberData_t)vtable[24];
+	vtable[24] = (void*)HookedGetLobbyMemberData;
+	VirtualProtect(&vtable[24], sizeof(void*), oldProtect, &oldProtect);
+	LogToFile("GetLobbyMemberData hooked");
+
+	VirtualProtect(&vtable[25], sizeof(void*), PAGE_READWRITE, &oldProtect);
+	OriginalSetLobbyMemberData = (SetLobbyMemberData_t)vtable[25];
+	vtable[25] = (void*)HookedSetLobbyMemberData;
+	VirtualProtect(&vtable[25], sizeof(void*), oldProtect, &oldProtect);
+	LogToFile("SetLobbyMemberData hooked");
+}
+
 int MainThreadProc(HMODULE hModule) {
 	if (!ProcessManager::instance().ReadProcess()) {
 		curl_global_cleanup();
