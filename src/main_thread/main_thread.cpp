@@ -29,17 +29,6 @@ std::atomic<bool> NeedUpdate = false;
 bool InitializeHook();
 bool checkVersionAndUpdate(const std::string& url, const std::string& expected_version);
 
-// Тип функции
-//typedef const char* (S_CALLTYPE* GetLobbyMemberData_t)(
-//	ISteamMatchmaking*, CSteamID, CSteamID, const char*);
-//
-//GetLobbyMemberData_t OriginalGetLobbyMemberData = nullptr;
-//
-//typedef void (S_CALLTYPE* SetLobbyMemberData_t)(
-//	ISteamMatchmaking*, CSteamID, const char*, const char*);
-//
-//SetLobbyMemberData_t OriginalSetLobbyMemberData = nullptr;
-
 // Наш перехватчик Get
 typedef const char* (__fastcall* GetLobbyMemberData_t)(
 	ISteamMatchmaking*, void*, CSteamID, CSteamID, const char*);
@@ -51,7 +40,7 @@ const char* __fastcall HookedGetLobbyMemberData(
 	CSteamID lobbyID, CSteamID steamID, const char* key) {
 
 	const char* result = OriginalGetLobbyMemberData(self, edx_unused, lobbyID, steamID, key);
-	LogToFile(std::string("GetLobbyMemberData key=") + key +
+	LogToFile(std::string("GET LobbyMemberData key=") + key +
 		" result=" + (result ? result : "null"));
 	return result;
 }
@@ -66,9 +55,36 @@ void __fastcall HookedSetLobbyMemberData(
 	ISteamMatchmaking* self, void* edx_unused,
 	CSteamID lobbyID, const char* key, const char* value) {
 
-	LogToFile(std::string("SetLobbyMemberData key=") + key +
+	LogToFile(std::string("SET LobbyMemberData key=") + key +
 		" value=" + (value ? value : "null"));
 	OriginalSetLobbyMemberData(self, edx_unused, lobbyID, key, value);
+}
+
+// GetLobbyData
+typedef const char* (__fastcall* GetLobbyData_t)(
+	ISteamMatchmaking*, void*, CSteamID, const char*);
+GetLobbyData_t OriginalGetLobbyData = nullptr;
+
+const char* __fastcall HookedGetLobbyData(
+	ISteamMatchmaking* self, void* edx_unused,
+	CSteamID lobbyID, const char* key) {
+	const char* result = OriginalGetLobbyData(self, edx_unused, lobbyID, key);
+	LogToFile(std::string("GET LobbyData key=") + key +
+		" result=" + (result ? result : "null"));
+	return result;
+}
+
+// SetLobbyData
+typedef bool(__fastcall* SetLobbyData_t)(
+	ISteamMatchmaking*, void*, CSteamID, const char*, const char*);
+SetLobbyData_t OriginalSetLobbyData = nullptr;
+
+bool __fastcall HookedSetLobbyData(
+	ISteamMatchmaking* self, void* edx_unused,
+	CSteamID lobbyID, const char* key, const char* value) {
+	LogToFile(std::string("SET LobbyData key=") + key +
+		" value=" + (value ? value : "null"));
+	return OriginalSetLobbyData(self, edx_unused, lobbyID, key, value);
 }
 
 // Установка хука
@@ -86,6 +102,20 @@ void HookSteamMatchmaking() {
 	LogToFile("vtable address: " + std::to_string((uintptr_t)vtable));
 
 	DWORD oldProtect;
+
+	// GetLobbyData (index 19)
+	VirtualProtect(&vtable[19], sizeof(void*), PAGE_READWRITE, &oldProtect);
+	OriginalGetLobbyData = (GetLobbyData_t)vtable[19];
+	vtable[19] = (void*)HookedGetLobbyData;
+	VirtualProtect(&vtable[19], sizeof(void*), oldProtect, &oldProtect);
+	LogToFile("GetLobbyData hooked");
+
+	// SetLobbyData (index 20)
+	VirtualProtect(&vtable[20], sizeof(void*), PAGE_READWRITE, &oldProtect);
+	OriginalSetLobbyData = (SetLobbyData_t)vtable[20];
+	vtable[20] = (void*)HookedSetLobbyData;
+	VirtualProtect(&vtable[20], sizeof(void*), oldProtect, &oldProtect);
+	LogToFile("SetLobbyData hooked");
 
 	VirtualProtect(&vtable[24], sizeof(void*), PAGE_READWRITE, &oldProtect);
 	OriginalGetLobbyMemberData = (GetLobbyMemberData_t)vtable[24];

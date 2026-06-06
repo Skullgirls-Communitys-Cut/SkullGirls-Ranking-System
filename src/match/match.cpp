@@ -21,8 +21,16 @@ using json = nlohmann::json;
 #include "../main_thread/main_thread.h"
 
 Match g_CurrentMatch;
-//std::recursive_mutex Match::sendMutex;
 CRITICAL_SECTION Match::sendCS;
+
+#pragma pack(push, 1)
+struct ModInfoPacket {
+    char marker[4];      // "MODI"
+    char version[8];     // версия мода
+    uint8_t ranked;      // 0/1
+    int32_t loc;         // регион
+};
+#pragma pack(pop)
 
 int convertMatchResult(int memoryResult, bool weAreFirstPlayer) {
     switch (memoryResult) {
@@ -82,10 +90,23 @@ nlohmann::json Match::GenerateCharacterNames(bool WeAreFirstPlayer) const {
     return result;
 }
 
+void Match::SetCanSendMatch(bool NewValue) {
+    if (CanSendMatch == NewValue) return;
+    CanSendMatch = NewValue;
+    if (!lobbyID.IsValid()) return;
+
+    if (m_roomType == LOBBY_TYPE_ALL_PLAY) {
+        SteamMatchmaking()->SetLobbyMemberData(lobbyID, "ranked_enabled", CanSendMatch ? "1" : "0");
+        //LogToFile("SetLobbyMemberData key=ranked_enabled value=" + std::string(CanSendMatch ? "1" : "0") + " (from SetCanSendMatch)");
+    }
+    else if (m_roomType == LOBBY_TYPE_QUICK_MATCH) {
+        SendModInfo();
+    }
+}
+
 bool Match::sendMatchInfo() {
     LogToFile("sendMatchInfo called");
     LogToFile("Before mutex lock");
-    //std::lock_guard<std::recursive_mutex> lock(sendMutex); // если используется
     // Использование — идентично lock_guard:
     CSLock lock(sendCS); // захватит при создании, освободит автоматически
     LogToFile("After mutex lock");
@@ -100,59 +121,111 @@ bool Match::sendMatchInfo() {
     SUPER_SECRET_KEY.RequestTicket();
     LogToFile("RequestTicket called");
 
-    const char* roomTypeStr = SteamMatchmaking()->GetLobbyData(lobbyID, "RoomType");
-    int RoomType = (roomTypeStr && roomTypeStr[0]) ? atoi(roomTypeStr) : -1;
+    int RoomType = m_roomType;
+    LogToFile("RoomType: " + std::to_string(RoomType));
     if (RoomType != LOBBY_TYPE_ALL_PLAY && RoomType != LOBBY_TYPE_QUICK_MATCH) return false;
-    LogToFile("RoomType OK: " + std::to_string(RoomType));
-
+    
     long long timestamp = std::time(nullptr);
     long long mySteamIDuint64 = SteamUser()->GetSteamID().ConvertToUint64();
 
-    const char* oppStr = SteamMatchmaking()->GetLobbyMemberData(lobbyID, SteamUser()->GetSteamID(), "Opp");
-    CSteamID OppSteamID = (oppStr && oppStr[0]) ? CSteamID(strtoull(oppStr, nullptr, 10)) : k_steamIDNil;
-    if (OppSteamID == k_steamIDNil) {
-        LogToFile("OppSteamID is nil, skipping"); // добавлено на время тестирования квик матчей
-        return false;
-    }
-    long long OppSteamIDuint64 = OppSteamID.ConvertToUint64();
+    CSteamID OppSteamID = k_steamIDNil;
+    int MyLoc = -1;
+    int OppLoc = -1;
+    bool WeAreFirstPlayer = false;
+    uint32_t matchId = 0;
 
-    const char* MylocStr = SteamMatchmaking()->GetLobbyMemberData(lobbyID, SteamUser()->GetSteamID(), "Loc");
-    int MyLoc = (MylocStr && MylocStr[0]) ? atoi(MylocStr) : 0;
-
-    const char* OpplocStr = SteamMatchmaking()->GetLobbyMemberData(lobbyID, OppSteamID, "Loc");
-    int OppLoc = (OpplocStr && OpplocStr[0]) ? atoi(OpplocStr) : 0;
-
-    //bool WeAreFirstPlayer = (OppSteamID == player2SteamID) ? true : false;
-    bool WeAreFirstPlayer;
     if (RoomType == LOBBY_TYPE_ALL_PLAY) {
+        const char* oppStr = SteamMatchmaking()->GetLobbyMemberData(
+            lobbyID, SteamUser()->GetSteamID(), "Opp");
+        OppSteamID = (oppStr && oppStr[0])
+            ? CSteamID(strtoull(oppStr, nullptr, 10)) : k_steamIDNil;
+        if (OppSteamID == k_steamIDNil) {
+            LogToFile("OppSteamID is nil, skipping");
+            return false;
+        }
+
+        const char* myLocStr = SteamMatchmaking()->GetLobbyMemberData(
+            lobbyID, SteamUser()->GetSteamID(), "Loc");
+        MyLoc = (myLocStr && myLocStr[0]) ? atoi(myLocStr) : -1;
+
+        const char* oppLocStr = SteamMatchmaking()->GetLobbyMemberData(
+            lobbyID, OppSteamID, "Loc");
+        OppLoc = (oppLocStr && oppLocStr[0]) ? atoi(oppLocStr) : -1;
+
         WeAreFirstPlayer = (OppSteamID == player2SteamID);
-    }
-    else {
-        // Для QUICK_MATCH пробуем определять по величине SteamID
-        WeAreFirstPlayer = (mySteamIDuint64 < OppSteamIDuint64);
-    }
+        matchId = rng0 + matchCount;
 
-    // ищем текущего оппонента из лобби
-    auto it = std::find_if(m_lobbyMembers.begin(), m_lobbyMembers.end(),
-        [&OppSteamID](const LobbyMember& m) {
-            return m.steamID == OppSteamID;
-        });
-
-    // проверяем данные оппонента
-    if (it == m_lobbyMembers.end() || it->rankedVersion != VERSION || !it->rankedEnabled) {
-        LogToFile("Opponent check failed: no mod, wrong version, or ranked disabled. Version: " + it->rankedVersion);
-        return false;
-    }
-    LogToFile("Opponent ranked check OK");
-
-    uint32_t matchId;
-    if (RoomType == LOBBY_TYPE_ALL_PLAY) {
-        matchId = (int)rng0 + matchCount;
+        auto it = std::find_if(m_lobbyMembers.begin(), m_lobbyMembers.end(),
+            [&OppSteamID](const LobbyMember& m) { return m.steamID == OppSteamID; });
+        if (it == m_lobbyMembers.end() || it->rankedVersion != VERSION || !it->rankedEnabled) {
+            LogToFile("Opponent check failed (ALL_PLAY). Version: " +
+                (it != m_lobbyMembers.end() ? it->rankedVersion : "not found"));
+            return false;
+        }
     }
     else if (RoomType == LOBBY_TYPE_QUICK_MATCH) {
-        // rng0 не приходит через пакет, берём из lobbyID
-        matchId = (uint32_t)(lobbyID.ConvertToUint64() & 0xFFFFFFFF) + matchCount;
+        int memberCount = SteamMatchmaking()->GetNumLobbyMembers(lobbyID);
+        if (memberCount != 2) {
+            LogToFile("QuickMatch error: wrong member count: " + std::to_string(memberCount));
+            return false;
+        }
+        for (int i = 0; i < memberCount; ++i) {
+            CSteamID m = SteamMatchmaking()->GetLobbyMemberByIndex(lobbyID, i);
+            if (m != SteamUser()->GetSteamID()) {
+                OppSteamID = m;
+                break;
+            }
+        }
+        if (OppSteamID == k_steamIDNil) {
+            LogToFile("OppSteamID is nil (QUICK_MATCH), skipping");
+            return false;
+        }
+
+        auto it = std::find_if(m_lobbyMembers.begin(), m_lobbyMembers.end(),
+            [&OppSteamID](const LobbyMember& m) { return m.steamID == OppSteamID; });
+        if (it == m_lobbyMembers.end() || !it->modInfoReceived) {
+            LogToFile("Opponent check failed (QUICK_MATCH). modInfoReceived false or not found");
+            return false;
+        }
+        if (it->rankedVersion != VERSION || !it->rankedEnabled) {
+            LogToFile("Opponent check failed (QUICK_MATCH). "
+                "Version: " + it->rankedVersion +
+                " (expected " VERSION "), "
+                "RankedEnabled: " + std::to_string(it->rankedEnabled));
+            return false;
+        }
+        /*OppLoc = it->loc;
+
+        const char* myLocStr = SteamMatchmaking()->GetLobbyMemberData(
+            lobbyID, SteamUser()->GetSteamID(), "Loc");
+        MyLoc = (myLocStr && myLocStr[0]) ? atoi(myLocStr) : -1;*/
+
+        CSteamID lobbyOwner = SteamMatchmaking()->GetLobbyOwner(lobbyID);
+        bool iAmHost = (lobbyOwner == SteamUser()->GetSteamID());
+
+        const char* sgRegionStr = SteamMatchmaking()->GetLobbyData(lobbyID, "SGRegion");
+        int hostRegion = (sgRegionStr && sgRegionStr[0]) ? atoi(sgRegionStr) : 0;
+
+        if (iAmHost) {
+            MyLoc = hostRegion;
+            OppLoc = 0;   // регион второго игрока неизвестен
+        }
+        else {
+            MyLoc = 0;            // свой регион неизвестен
+            OppLoc = hostRegion;  // оппонент — хост, его регион известен
+        }
+
+        WeAreFirstPlayer = (mySteamIDuint64 > OppSteamID.ConvertToUint64());
+
+        const char* randSeedStr = SteamMatchmaking()->GetLobbyData(lobbyID, "RandSeed");
+        if (randSeedStr && randSeedStr[0])
+            rng0 = (uint32_t)atoi(randSeedStr);
+        matchId = rng0 + matchCount;
     }
+
+    LogToFile("Opponent check OK");
+
+    long long OppSteamIDuint64 = OppSteamID.ConvertToUint64();
 
     int resultMemory;
     MemoryWorker::ReadProcessMemoryWithOffsets(
@@ -248,6 +321,18 @@ bool Match::sendMatchInfo() {
     return true;
 }
 
+void Match::SendModInfo() {
+    if (!lobbyID.IsValid()) return;
+    ModInfoPacket p;
+    memcpy(p.marker, "MODI", 4);
+    strncpy(p.version, VERSION, sizeof(p.version));
+    p.ranked = CanSendMatch ? 1 : 0;
+    //p.loc = myLoc;
+    LogToFile("SendModInfo: ranked=" + std::to_string(p.ranked) +
+        " version=" + std::string(p.version));
+    SteamMatchmaking()->SendLobbyChatMsg(lobbyID, &p, sizeof(p));
+}
+
 void TestPostRequest() {
     std::string url = API_URL;
     std::string path = API_PATH;
@@ -279,6 +364,53 @@ void TestPostRequest() {
     LogToFile(("[TEST] Status: " + std::to_string(res.status) + "\n").c_str());
     LogToFile(("[TEST] Body: " + res.body + "\n").c_str());
     LogToFile(res.success ? "[TEST] SUCCESS\n" : "[TEST] FAILED\n");
+}
+
+void Match::OnLobbyEnter(LobbyEnter_t* pCallback) {
+    static bool hooked = false;
+    if (!hooked) {
+        HookSteamMatchmaking();
+        hooked = true;
+    }
+    if (pCallback->m_EChatRoomEnterResponse == k_EChatRoomEnterResponseSuccess) {
+        LogToFile("OnLobbyEnter");
+        lobbyID = CSteamID(pCallback->m_ulSteamIDLobby);
+        const char* roomTypeStr = SteamMatchmaking()->GetLobbyData(lobbyID, "RoomType");
+        m_roomType = (roomTypeStr && roomTypeStr[0]) ? atoi(roomTypeStr) : -1;
+        if (m_roomType == LOBBY_TYPE_QUICK_MATCH) {
+            m_lobbyMembers.clear();
+            SendModInfo();
+            m_modiSent = true;
+        }
+        else if (m_roomType == LOBBY_TYPE_ALL_PLAY) {
+            SteamMatchmaking()->SetLobbyMemberData(lobbyID, "ranked_version", VERSION);
+            SteamMatchmaking()->SetLobbyMemberData(
+                lobbyID, "ranked_enabled", CanSendMatch ? "1" : "0");
+
+            // читаем тех кто уже есть в лобби используя m_lobbyMembers для сохранения всех игроков
+            m_lobbyMembers.clear();
+            int memberCount = SteamMatchmaking()->GetNumLobbyMembers(lobbyID);
+            for (int i = 0; i < memberCount; i++) {
+                CSteamID memberID = SteamMatchmaking()->GetLobbyMemberByIndex(lobbyID, i);
+
+                const char* version = SteamMatchmaking()->GetLobbyMemberData(
+                    lobbyID, memberID, "ranked_version");
+                const char* ranked = SteamMatchmaking()->GetLobbyMemberData(
+                    lobbyID, memberID, "ranked_enabled");
+
+                LobbyMember member;
+                member.steamID = memberID;
+                member.rankedVersion = (version && strlen(version) > 0) ? version : "";
+                member.rankedEnabled = (ranked && strcmp(ranked, "1") == 0);
+                m_lobbyMembers.push_back(member);
+            }
+        }
+    }
+    else {
+        lobbyID = k_steamIDNil;
+        m_lobbyMembers.clear();
+        m_roomType = -1;
+    }
 }
 
 #define MAX_MESSAGE_SIZE 256
@@ -319,45 +451,38 @@ void Match::OnLobbyChatMessage(LobbyChatMsg_t* pCallback) {
 
             CSteamID opponentSteamID = (SteamUser()->GetSteamID() == steamIDP1) ? steamIDP2 : steamIDP1;
         }
-    }
-}
-
-
-void Match::OnLobbyEnter(LobbyEnter_t* pCallback) {
-    static bool hooked = false;
-    if (!hooked) {
-        HookSteamMatchmaking();
-        hooked = true;
-    }
-    if (pCallback->m_EChatRoomEnterResponse == k_EChatRoomEnterResponseSuccess) {
-        LogToFile("OnLobbyEnter");
-        lobbyID = CSteamID(pCallback->m_ulSteamIDLobby);
-
-        SteamMatchmaking()->SetLobbyMemberData(lobbyID, "ranked_version", VERSION);
-        SteamMatchmaking()->SetLobbyMemberData(
-            lobbyID, "ranked_enabled", CanSendMatch ? "1" : "0");
-
-        // читаем тех кто уже есть в лобби используя m_lobbyMembers для сохранения всех игроков
-        m_lobbyMembers.clear();
-        int memberCount = SteamMatchmaking()->GetNumLobbyMembers(lobbyID);
-        for (int i = 0; i < memberCount; i++) {
-            CSteamID memberID = SteamMatchmaking()->GetLobbyMemberByIndex(lobbyID, i);
-
-            const char* version = SteamMatchmaking()->GetLobbyMemberData(
-                lobbyID, memberID, "ranked_version");
-            const char* ranked = SteamMatchmaking()->GetLobbyMemberData(
-                lobbyID, memberID, "ranked_enabled");
-
-            LobbyMember member;
-            member.steamID = memberID;
-            member.rankedVersion = (version && strlen(version) > 0) ? version : "";
-            member.rankedEnabled = (ranked && strcmp(ranked, "1") == 0);
-            m_lobbyMembers.push_back(member);
+    } else if (messageSize >= sizeof(ModInfoPacket) && memcmp(Message, "MODI", 4) == 0) {
+        ModInfoPacket* p = (ModInfoPacket*)Message;
+        CSteamID sender(pCallback->m_ulSteamIDUser);
+        if (sender == SteamUser()->GetSteamID()) return;
+        auto it = std::find_if(m_lobbyMembers.begin(), m_lobbyMembers.end(),
+            [sender](const LobbyMember& m) { return m.steamID == sender; });
+        if (it != m_lobbyMembers.end()) {
+            it->rankedVersion = p->version;
+            it->rankedEnabled = (p->ranked == 1);
+            //it->loc = p->loc;
+            it->modInfoReceived = true;
         }
-    }
-    else {
-        lobbyID = k_steamIDNil;
-        m_lobbyMembers.clear();
+        else {
+            LobbyMember m;
+            m.steamID = sender;
+            m.rankedVersion = p->version;
+            m.rankedEnabled = (p->ranked == 1);
+            //m.loc = p->loc;
+            m.modInfoReceived = true;
+            m_lobbyMembers.push_back(m);
+        }
+        std::string versionStr(p->version, strnlen(p->version, sizeof(p->version)));
+        LogToFile("MODI received | Sender: " + std::to_string(sender.ConvertToUint64()) +
+            " | RoomType: " + std::to_string(m_roomType) +
+            " | Version: " + versionStr +
+            " | RankedEnabled: " + std::to_string(p->ranked));
+            //" | Loc: " + std::to_string(p->loc));
+        if (m_roomType == LOBBY_TYPE_QUICK_MATCH && !m_modiSent) {
+            m_modiSent = true;
+            SendModInfo();
+        }
+        return;
     }
 }
 
@@ -371,21 +496,30 @@ void Match::OnLobbyChatUpdate(LobbyChatUpdate_t* pCallback){
         (k_EChatMemberStateChangeLeft | k_EChatMemberStateChangeDisconnected)) {
         lobbyID = k_steamIDNil;
         m_lobbyMembers.clear();
+        m_roomType = -1;
+        matchCount = 0;
+        m_modiSent = false;
         return;
     }
     if (pCallback->m_rgfChatMemberStateChange & k_EChatMemberStateChangeEntered) {
         LogToFile("OnLobbyChatUpdate: Member Entered");
-        // Читаем данные нового игрока и добавляем в список
-        const char* version = SteamMatchmaking()->GetLobbyMemberData(
-            lobbyID, changedUser, "ranked_version");
-        const char* ranked = SteamMatchmaking()->GetLobbyMemberData(
-            lobbyID, changedUser, "ranked_enabled");
+        if (m_roomType == LOBBY_TYPE_QUICK_MATCH) {
+            SendModInfo();
+        }
+        else if (m_roomType == LOBBY_TYPE_ALL_PLAY) {
+            // Читаем данные нового игрока и добавляем в список
+            const char* version = SteamMatchmaking()->GetLobbyMemberData(
+                lobbyID, changedUser, "ranked_version");
+            const char* ranked = SteamMatchmaking()->GetLobbyMemberData(
+                lobbyID, changedUser, "ranked_enabled");
 
-        LobbyMember member;
-        member.steamID = changedUser;
-        member.rankedVersion = (version && strlen(version) > 0) ? version : "0.0";
-        member.rankedEnabled = (ranked && strcmp(ranked, "1") == 0);
-        m_lobbyMembers.push_back(member);
+            LobbyMember member;
+            member.steamID = changedUser;
+            member.rankedVersion = (version && strlen(version) > 0) ? version : "";
+            member.rankedEnabled = (ranked && strcmp(ranked, "1") == 0);
+            m_lobbyMembers.push_back(member);
+            LogToFile("OnLobbyChatUpdate for lobby member SteamID: " + std::to_string(changedUser.ConvertToUint64()));
+        }
     }
     else if (pCallback->m_rgfChatMemberStateChange &
         (k_EChatMemberStateChangeLeft | k_EChatMemberStateChangeDisconnected)) {
@@ -409,14 +543,44 @@ void Match::OnLobbyDataUpdate(LobbyDataUpdate_t* pCallback) {
     if (!pCallback->m_bSuccess) return;
 
     CSteamID changedMember(pCallback->m_ulSteamIDMember);
+    CSteamID lobby(pCallback->m_ulSteamIDLobby);
 
-    // Находим игрока в списке и обновляем его данные
+    // Если обновились данные самого лобби (не участника)
+    if (changedMember == lobby) {
+        const char* roomTypeStr = SteamMatchmaking()->GetLobbyData(lobbyID, "RoomType");
+        if (roomTypeStr && roomTypeStr[0]) {
+            int newRoomType = atoi(roomTypeStr);
+            if (m_roomType == -1 && newRoomType != -1) {
+                m_roomType = newRoomType;
+                LogToFile("OnLobbyDataUpdate: set m_roomType to " + std::to_string(m_roomType));
+                if (m_roomType == LOBBY_TYPE_QUICK_MATCH) {
+                    SendModInfo();  // теперь хост отправит MODI
+                    m_modiSent = true;
+                }
+            }
+        }
+    }
+
+    if (changedMember == SteamUser()->GetSteamID()) {
+        const char* locStr = SteamMatchmaking()->GetLobbyMemberData(
+            lobbyID, SteamUser()->GetSteamID(), "Loc");
+        if (locStr && locStr[0])
+            myLoc = atoi(locStr);
+        return; // свои данные — дальше не идём
+    }
+
+    // Находим игрока в списке и обновляем его данные (для других участников)
     for (auto& member : m_lobbyMembers) {
         if (member.steamID == changedMember) {
+            // Пропускаем самого себя
+            if (changedMember == SteamUser()->GetSteamID()) {
+                break;
+            }
+
             const char* ranked = SteamMatchmaking()->GetLobbyMemberData(
                 lobbyID, changedMember, "ranked_enabled");
             member.rankedEnabled = (ranked && strcmp(ranked, "1") == 0);
-            LogToFile("OnLobbyDataUpdate for lobby member");
+            LogToFile("OnLobbyDataUpdate for lobby member SteamID: " + std::to_string(changedMember.ConvertToUint64()));
             break;
         }
     }

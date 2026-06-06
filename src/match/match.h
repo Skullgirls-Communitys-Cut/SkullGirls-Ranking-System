@@ -12,8 +12,10 @@ void TestPostRequest();
 
 struct LobbyMember {
     CSteamID steamID;
-    bool rankedEnabled;
+    bool rankedEnabled = false;;
     std::string rankedVersion;
+    //int loc = -1;                  // регион
+    bool modInfoReceived = false;;     // для Quick Match – получен ли MODI
 };
 
 class Match {
@@ -21,10 +23,11 @@ public:
     
     bool sendMatchInfo();
     void updateCounter() { matchCount++; }
-    void SetCanSendMatch(bool NewValue) { CanSendMatch = NewValue; }
+    void SetCanSendMatch(bool NewValue); // void SetCanSendMatch(bool NewValue) { CanSendMatch = NewValue; }
     CSteamID getLobbyID(){ return lobbyID; }
     void Init() { InitializeCriticalSection(&sendCS); }
     const std::vector<LobbyMember>& GetLobbyMembers() const { return m_lobbyMembers; }
+    int GetRoomType() const { return m_roomType; }
 
 private:
     STEAM_CALLBACK(Match, OnLobbyChatMessage, LobbyChatMsg_t); // коллбек сообщений в чате лобби
@@ -40,12 +43,16 @@ private:
     nlohmann::json GenerateCharacterNames(bool WeAreFirstPlayer) const;
     std::optional<std::string> Character_Names[MAX_PLAYABLE_CHARACTERS];
     std::vector<LobbyMember> m_lobbyMembers;
+    int myLoc = -1;
+    int m_roomType = -1;   // -1 неизвестно, 0 = QUICK_MATCH, 1 = ALL_PLAY
 
     int matchCount = 0;  
 
     bool CanSendMatch = true;
 
     static CRITICAL_SECTION sendCS;
+    void SendModInfo();
+    bool m_modiSent = false;
 };
 
 extern Match g_CurrentMatch;
