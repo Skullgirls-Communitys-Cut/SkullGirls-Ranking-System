@@ -282,7 +282,7 @@ bool Match::sendMatchInfo() {
         std::string body = request.dump();
         LogToFile("JSON serialized, body size: " + std::to_string(body.size()));
 
-//#ifdef _DEBUG
+#ifdef _DEBUG
         std::string debug_body = request.dump(4);
         OutputDebugStringA(("[DEBUG] Sending JSON: " + debug_body + "\n").c_str());
 
@@ -291,20 +291,36 @@ bool Match::sendMatchInfo() {
             file << debug_body;
             file.close();
         }
-//#endif
+#endif
 
         auto res = CurlWrapper::Request(url + path, "POST", body, "application/json");
         LogToFile("Request done, status: " + std::to_string(res.status));
-        if (!res.success) {
-            OutputDebugStringA("[DEBUG] POST request failed!\n");
-            OutputDebugStringA(("[DEBUG] Status: " + std::to_string(res.status) + "\n").c_str());
-            LogToFile("[DEBUG] POST request failed!\n");
-            LogToFile("Status: " + std::to_string(res.status));
-            LogToFile("Body: " + res.body);
+
+        if (res.status >= 200 && res.status < 300) {
+            RankUI::g_MatchHistory.AddMatch(OppSteamID, result, timestamp, true);
+            LogToFile("Match confirmed and added to history");
         }
-        
-        RankUI::g_MatchHistory.AddMatch(OppSteamID, result, timestamp);
-        LogToFile("AddMatch done");
+        else {
+            std::string errorMsg;
+            try {
+                auto j = json::parse(res.body);
+                if (j.contains("status") && j["status"].is_string())
+                    errorMsg = j["status"];
+                else if (j.contains("error") && j["error"].is_string())
+                    errorMsg = j["error"];
+                else if (j.contains("message") && j["message"].is_string())
+                    errorMsg = j["message"];
+            }
+            catch (...) {}
+
+            RankUI::g_MatchHistory.AddMatch(OppSteamID, result, timestamp, false, res.status, errorMsg);
+            if (!res.success) {
+                OutputDebugStringA("[DEBUG] POST request failed!\n");
+                OutputDebugStringA(("[DEBUG] Status: " + std::to_string(res.status) + "\n").c_str());
+            }
+            LogToFile("Match NOT confirmed. Status: " + std::to_string(res.status) +
+                ", Body: " + res.body);
+        }
         }
         catch (const std::exception& e) {
             OutputDebugStringA(("[MATCH ERROR] Exception: " + std::string(e.what()) + "\n").c_str());

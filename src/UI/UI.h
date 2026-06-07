@@ -18,6 +18,9 @@ public:
         IDirect3DTexture9* avatarTex;   // текстура аватара (DX9)
         bool avatarRequested;           // флаг, что аватар уже запрошен
         long long timestamp;
+        bool confirmed = false;
+        int httpStatus = 0;
+        std::string serverMsg;
     };
 
     MatchHistory();
@@ -28,7 +31,8 @@ public:
     void Init(IDirect3DDevice9* device);
 
     // Добавить результат матча (вызывать, когда сервер подтвердил запись)
-    void AddMatch(CSteamID oppID, int result, long long timestamp);
+    void AddMatch(CSteamID oppID, int result, long long timestamp, bool confirmed, int httpStatus = 0,
+        const std::string& serverMsg = "");
 
     // Отрисовать историю в текущем окне ImGui
     void RenderHistory() const;
@@ -46,6 +50,7 @@ private:
 
     IDirect3DDevice9* m_device;         // устройство DX9
     std::vector<Record> m_history;      // список матчей
+    mutable CRITICAL_SECTION m_cs;
 };
 
 namespace RankUI {
