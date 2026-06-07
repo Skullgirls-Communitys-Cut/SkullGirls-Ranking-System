@@ -86,10 +86,11 @@ void Match::SetCanSendMatch(bool NewValue) {
     CanSendMatch = NewValue;
     if (!lobbyID.IsValid()) return;
 
-    /*if (m_roomType == LOBBY_TYPE_ALL_PLAY) {*/
+    if (m_roomType == LOBBY_TYPE_ALL_PLAY ||
+        m_roomType == LOBBY_TYPE_QUICK_MATCH) {
         SteamMatchmaking()->SetLobbyMemberData(lobbyID, "ranked_enabled", CanSendMatch ? "1" : "0");
         //LogToFile("SetLobbyMemberData key=ranked_enabled value=" + std::string(CanSendMatch ? "1" : "0") + " (from SetCanSendMatch)");
-    /*}*/
+    }
 }
 
 bool Match::sendMatchInfo() {
