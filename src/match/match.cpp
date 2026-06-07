@@ -214,7 +214,7 @@ bool Match::sendMatchInfo() {
             OppLoc = hostRegion;
         }
 
-        WeAreFirstPlayer = (mySteamIDuint64 > OppSteamID.ConvertToUint64());
+        WeAreFirstPlayer = (lobbyOwner == SteamUser()->GetSteamID());
 
         const char* randSeedStr = SteamMatchmaking()->GetLobbyData(lobbyID, "RandSeed");
         if (randSeedStr && randSeedStr[0])
