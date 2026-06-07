@@ -15,7 +15,6 @@ struct LobbyMember {
     bool rankedEnabled = false;;
     std::string rankedVersion;
     //int loc = -1;                  // регион
-    bool modInfoReceived = false;;     // для Quick Match – получен ли MODI
 };
 
 class Match {
@@ -51,8 +50,6 @@ private:
     bool CanSendMatch = true;
 
     static CRITICAL_SECTION sendCS;
-    void SendModInfo();
-    bool m_modiSent = false;
 };
 
 extern Match g_CurrentMatch;

@@ -273,9 +273,11 @@ namespace RankUI {
                 }
                 ImGui::Text("Turn on or off ranking matches.");
 
+                CSteamID lobbyID = g_CurrentMatch.getLobbyID();
                 int RoomType = g_CurrentMatch.GetRoomType();
 				//LogToFile("[UI] Current RoomType: %d", RoomType);
-                if (RoomType != LOBBY_TYPE_ALL_PLAY && RoomType != LOBBY_TYPE_QUICK_MATCH) {
+                if (!lobbyID.IsValid() ||
+                    (RoomType != LOBBY_TYPE_ALL_PLAY && RoomType != LOBBY_TYPE_QUICK_MATCH)) {
                     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "You are playing in the wrong lobby type!"); // -1
                 }
 
