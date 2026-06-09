@@ -29,6 +29,7 @@ std::atomic<bool> NeedUpdate = false;
 bool InitializeHook();
 bool checkVersionAndUpdate(const std::string& url, const std::string& expected_version);
 
+#ifdef _DEBUG
 // Наш перехватчик Get
 typedef const char* (__fastcall* GetLobbyMemberData_t)(
 	ISteamMatchmaking*, void*, CSteamID, CSteamID, const char*);
@@ -129,6 +130,7 @@ void HookSteamMatchmaking() {
 	VirtualProtect(&vtable[25], sizeof(void*), oldProtect, &oldProtect);
 	LogToFile("SetLobbyMemberData hooked");
 }
+#endif
 
 int MainThreadProc(HMODULE hModule) {
 	if (!ProcessManager::instance().ReadProcess()) {

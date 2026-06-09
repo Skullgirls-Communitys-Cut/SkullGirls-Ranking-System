@@ -239,11 +239,11 @@ bool Match::sendMatchInfo() {
 
     int result = convertMatchResult(resultMemory, WeAreFirstPlayer);
 
-//#ifdef _DEBUG
+#ifdef _DEBUG
     LogToFile("WeAreFirstPlayer: " + std::to_string(WeAreFirstPlayer));
     LogToFile("resultMemory: " + std::to_string(resultMemory));
     LogToFile("result after convert: " + std::to_string(result));
-//#endif
+#endif
 
     ReadCharacterNames();
     LogToFile("ReadCharacterNames done");
@@ -336,6 +336,7 @@ bool Match::sendMatchInfo() {
     return true;
 }
 
+#ifdef _DEBUG
 void TestPostRequest() {
     std::string url = API_URL;
     std::string path = API_PATH;
@@ -368,13 +369,16 @@ void TestPostRequest() {
     LogToFile(("[TEST] Body: " + res.body + "\n").c_str());
     LogToFile(res.success ? "[TEST] SUCCESS\n" : "[TEST] FAILED\n");
 }
+#endif
 
 void Match::OnLobbyEnter(LobbyEnter_t* pCallback) {
+#ifdef _DEBUG
     static bool hooked = false;
     if (!hooked) {
         HookSteamMatchmaking();
         hooked = true;
     }
+#endif
     if (pCallback->m_EChatRoomEnterResponse == k_EChatRoomEnterResponseSuccess) {
         LogToFile("OnLobbyEnter");
         lobbyID = CSteamID(pCallback->m_ulSteamIDLobby);

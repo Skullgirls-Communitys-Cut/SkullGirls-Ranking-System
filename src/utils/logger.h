@@ -6,21 +6,21 @@
 #include <cstdio>
 #include "../../env.h"
 
+#if ENABLE_FILE_LOGGER
+
 // Simple string overload
 inline void LogToFile(const std::string& message) {
-    if (!ENABLE_FILE_LOGGER) {
-        std::ofstream file("sg_debug.log", std::ios::app);
-        if (!file.is_open()) return;
+    std::ofstream file("sg_debug.log", std::ios::app);
+    if (!file.is_open()) return;
 
-        // Timestamp
-        std::time_t t = std::time(nullptr);
-        std::tm tm = *std::localtime(&t);
-        char timebuf[32];
-        strftime(timebuf, sizeof(timebuf), "%H:%M:%S", &tm);
+    // Timestamp
+    std::time_t t = std::time(nullptr);
+    std::tm tm = *std::localtime(&t);
+    char timebuf[32];
+    strftime(timebuf, sizeof(timebuf), "%H:%M:%S", &tm);
 
-        file << "[" << timebuf << "] " << message << "\n";
-        file.flush();
-    };
+    file << "[" << timebuf << "] " << message << "\n";
+    file.flush();
 }
 
 // printf-style overload. Uses a fixed-size stack buffer; enlarge if you need longer messages.
@@ -33,3 +33,9 @@ inline void LogToFile(const char* fmt, ...) {
 
     LogToFile(std::string(buf));
 }
+#else
+
+inline void LogToFile(const std::string&) {}
+inline void LogToFile(const char*, ...) {}
+
+#endif
