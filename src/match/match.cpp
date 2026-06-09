@@ -301,19 +301,19 @@ bool Match::sendMatchInfo() {
             LogToFile("Match confirmed and added to history");
         }
         else {
-            std::string errorMsg;
+            std::string errorStatus, errorMsg;
             try {
                 auto j = json::parse(res.body);
                 if (j.contains("status") && j["status"].is_string())
-                    errorMsg = j["status"];
+                    errorStatus = j["status"];
                 else if (j.contains("error") && j["error"].is_string())
-                    errorMsg = j["error"];
-                else if (j.contains("message") && j["message"].is_string())
+                    errorStatus = j["error"];
+                if (j.contains("message") && j["message"].is_string())
                     errorMsg = j["message"];
             }
             catch (...) {}
 
-            RankUI::g_MatchHistory.AddMatch(OppSteamID, result, timestamp, false, res.status, errorMsg);
+            RankUI::g_MatchHistory.AddMatch(OppSteamID, result, timestamp, false, res.status, errorStatus, errorMsg);
             if (!res.success) {
                 OutputDebugStringA("[DEBUG] POST request failed!\n");
                 OutputDebugStringA(("[DEBUG] Status: " + std::to_string(res.status) + "\n").c_str());

@@ -56,7 +56,7 @@ void MatchHistory::RestoreDeviceObjects(IDirect3DDevice9* device) {
     }
 }
 
-void MatchHistory::AddMatch(CSteamID oppID, int result, long long timestamp, bool confirmed, int httpStatus, const std::string& serverMsg) {
+void MatchHistory::AddMatch(CSteamID oppID, int result, long long timestamp, bool confirmed, int httpStatus, const std::string& serverStatus, const std::string& serverMsg) {
     CSLock lock(m_cs);
     Record rec;
     rec.oppID = oppID;
@@ -66,6 +66,7 @@ void MatchHistory::AddMatch(CSteamID oppID, int result, long long timestamp, boo
     rec.timestamp = timestamp;
     rec.confirmed = confirmed;
     rec.httpStatus = httpStatus;
+    rec.serverStatus = serverStatus;
     rec.serverMsg = serverMsg;
     // Получаем ник сразу (синхронно)
     const char* name = SteamFriends()->GetFriendPersonaName(oppID);
@@ -204,9 +205,11 @@ void MatchHistory::RenderHistory() const {
         }
         if (!rec.confirmed) {
             ImGui::SameLine();
-            ImGui::TextColored(ImVec4(1, 0, 0, 1), "(Error %d)", rec.httpStatus);
+            if (!rec.serverStatus.empty())
+                ImGui::TextColored(ImVec4(1, 0, 0, 1), "(Error %d - %s)", rec.httpStatus, rec.serverStatus.c_str());
+            else
+                ImGui::TextColored(ImVec4(1, 0, 0, 1), "(Error %d)", rec.httpStatus);
             if (!rec.serverMsg.empty()) {
-                //ImGui::NewLine();
                 ImGui::TextColored(ImVec4(0.9f, 0.5f, 0.5f, 1), "%s", rec.serverMsg.c_str());
             }
         }

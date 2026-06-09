@@ -20,7 +20,8 @@ public:
         long long timestamp;
         bool confirmed = false;
         int httpStatus = 0;
-        std::string serverMsg;
+        std::string serverStatus;   // короткий статус: "cooldown", "invalid_version" и т.п.
+        std::string serverMsg;      // полное сообщение: "Rate limit: 3 matches per 360 minutes"
     };
 
     MatchHistory();
@@ -32,7 +33,7 @@ public:
 
     // Добавить результат матча (вызывать, когда сервер подтвердил запись)
     void AddMatch(CSteamID oppID, int result, long long timestamp, bool confirmed, int httpStatus = 0,
-        const std::string& serverMsg = "");
+        const std::string& serverStatus = "", const std::string& serverMsg = "");
 
     // Отрисовать историю в текущем окне ImGui
     void RenderHistory() const;
