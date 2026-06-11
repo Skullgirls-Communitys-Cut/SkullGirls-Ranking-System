@@ -29,6 +29,109 @@ std::atomic<bool> NeedUpdate = false;
 bool InitializeHook();
 bool checkVersionAndUpdate(const std::string& url, const std::string& expected_version);
 
+#ifdef _DEBUG
+// Наш перехватчик Get
+typedef const char* (__fastcall* GetLobbyMemberData_t)(
+	ISteamMatchmaking*, void*, CSteamID, CSteamID, const char*);
+
+GetLobbyMemberData_t OriginalGetLobbyMemberData = nullptr;
+
+const char* __fastcall HookedGetLobbyMemberData(
+	ISteamMatchmaking* self, void* edx_unused,
+	CSteamID lobbyID, CSteamID steamID, const char* key) {
+
+	const char* result = OriginalGetLobbyMemberData(self, edx_unused, lobbyID, steamID, key);
+	LogToFile(std::string("GET LobbyMemberData key=") + key +
+		" result=" + (result ? result : "null"));
+	return result;
+}
+
+// Set
+typedef void(__fastcall* SetLobbyMemberData_t)(
+	ISteamMatchmaking*, void*, CSteamID, const char*, const char*);
+
+SetLobbyMemberData_t OriginalSetLobbyMemberData = nullptr;
+
+void __fastcall HookedSetLobbyMemberData(
+	ISteamMatchmaking* self, void* edx_unused,
+	CSteamID lobbyID, const char* key, const char* value) {
+
+	LogToFile(std::string("SET LobbyMemberData key=") + key +
+		" value=" + (value ? value : "null"));
+	OriginalSetLobbyMemberData(self, edx_unused, lobbyID, key, value);
+}
+
+// GetLobbyData
+typedef const char* (__fastcall* GetLobbyData_t)(
+	ISteamMatchmaking*, void*, CSteamID, const char*);
+GetLobbyData_t OriginalGetLobbyData = nullptr;
+
+const char* __fastcall HookedGetLobbyData(
+	ISteamMatchmaking* self, void* edx_unused,
+	CSteamID lobbyID, const char* key) {
+	const char* result = OriginalGetLobbyData(self, edx_unused, lobbyID, key);
+	LogToFile(std::string("GET LobbyData key=") + key +
+		" result=" + (result ? result : "null"));
+	return result;
+}
+
+// SetLobbyData
+typedef bool(__fastcall* SetLobbyData_t)(
+	ISteamMatchmaking*, void*, CSteamID, const char*, const char*);
+SetLobbyData_t OriginalSetLobbyData = nullptr;
+
+bool __fastcall HookedSetLobbyData(
+	ISteamMatchmaking* self, void* edx_unused,
+	CSteamID lobbyID, const char* key, const char* value) {
+	LogToFile(std::string("SET LobbyData key=") + key +
+		" value=" + (value ? value : "null"));
+	return OriginalSetLobbyData(self, edx_unused, lobbyID, key, value);
+}
+
+// Установка хука
+void HookSteamMatchmaking() {
+	LogToFile("HookSteamMatchmaking called");
+
+	ISteamMatchmaking* mm = SteamMatchmaking();
+	if (!mm) {
+		LogToFile("SteamMatchmaking() returned null!");
+		return;
+	}
+	LogToFile("SteamMatchmaking OK, patching vtable...");
+
+	void** vtable = *(void***)mm;
+	LogToFile("vtable address: " + std::to_string((uintptr_t)vtable));
+
+	DWORD oldProtect;
+
+	// GetLobbyData (index 19)
+	VirtualProtect(&vtable[19], sizeof(void*), PAGE_READWRITE, &oldProtect);
+	OriginalGetLobbyData = (GetLobbyData_t)vtable[19];
+	vtable[19] = (void*)HookedGetLobbyData;
+	VirtualProtect(&vtable[19], sizeof(void*), oldProtect, &oldProtect);
+	LogToFile("GetLobbyData hooked");
+
+	// SetLobbyData (index 20)
+	VirtualProtect(&vtable[20], sizeof(void*), PAGE_READWRITE, &oldProtect);
+	OriginalSetLobbyData = (SetLobbyData_t)vtable[20];
+	vtable[20] = (void*)HookedSetLobbyData;
+	VirtualProtect(&vtable[20], sizeof(void*), oldProtect, &oldProtect);
+	LogToFile("SetLobbyData hooked");
+
+	VirtualProtect(&vtable[24], sizeof(void*), PAGE_READWRITE, &oldProtect);
+	OriginalGetLobbyMemberData = (GetLobbyMemberData_t)vtable[24];
+	vtable[24] = (void*)HookedGetLobbyMemberData;
+	VirtualProtect(&vtable[24], sizeof(void*), oldProtect, &oldProtect);
+	LogToFile("GetLobbyMemberData hooked");
+
+	VirtualProtect(&vtable[25], sizeof(void*), PAGE_READWRITE, &oldProtect);
+	OriginalSetLobbyMemberData = (SetLobbyMemberData_t)vtable[25];
+	vtable[25] = (void*)HookedSetLobbyMemberData;
+	VirtualProtect(&vtable[25], sizeof(void*), oldProtect, &oldProtect);
+	LogToFile("SetLobbyMemberData hooked");
+}
+#endif
+
 int MainThreadProc(HMODULE hModule) {
 	if (!ProcessManager::instance().ReadProcess()) {
 		curl_global_cleanup();
@@ -70,6 +173,7 @@ int MainThreadProc(HMODULE hModule) {
 		}
 		Sleep(10);
 	}
+	return 0;
 }
 
 bool InitializeHook() {
@@ -127,7 +231,7 @@ bool checkVersionAndUpdate(const std::string& url, const std::string& expected_v
 
 		return remote_version != expected_version;
 	}
-	catch (const std::exception& e) {
+	catch (const std::exception&) {
 		//std::string err = "[DEBUG] JSON Error: ";
 		//err += e.what();
 		//OutputDebugStringA(err.c_str());

@@ -68,8 +68,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>$(ProjectDir)src\dll_proxy\dll_proxy.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>$(ProjectDir)external\curl\curl_output_x86\lib;$(ProjectDir)lib\steam;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>steam_api.lib;mbedtls.lib;mbedx509.lib;mbedcrypto.lib;libcurl.lib;Ws2_32.lib;Wldap32.lib;Crypt32.lib;Normaliz.lib;Secur32.lib;Iphlpapi.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)external\curl\curl_output_x86_debug\lib;$(ProjectDir)lib\steam;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>steam_api.lib;mbedtls.lib;mbedx509.lib;mbedcrypto.lib;libcurl-d.lib;Ws2_32.lib;Wldap32.lib;Crypt32.lib;Normaliz.lib;Secur32.lib;Iphlpapi.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>LIBCMT.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

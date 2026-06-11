@@ -11,6 +11,7 @@
 #include "../../env.h"
 #include "../../src/main_thread/main_thread.h"
 #include "../utils/logger.h"
+#include "../utils/cs_lock.h"
 
 
 namespace imgui_show {
@@ -24,10 +25,12 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam
 // ----------------------------------------------------------------------------
 MatchHistory::MatchHistory() : m_device(nullptr) {
     // Подписка на Steam-колбэк автоматически создаётся через STEAM_CALLBACK
+    InitializeCriticalSection(&m_cs);
 }
 
 MatchHistory::~MatchHistory() {
     Clear();
+    DeleteCriticalSection(&m_cs);
 }
 
 void MatchHistory::Init(IDirect3DDevice9* device) {
@@ -35,6 +38,7 @@ void MatchHistory::Init(IDirect3DDevice9* device) {
 }
 
 void MatchHistory::InvalidateDeviceObjects() {
+    CSLock lock(m_cs);
     for (auto& rec : m_history) {
         if (rec.avatarTex) {
             rec.avatarTex->Release();
@@ -45,19 +49,25 @@ void MatchHistory::InvalidateDeviceObjects() {
 }
 
 void MatchHistory::RestoreDeviceObjects(IDirect3DDevice9* device) {
+    CSLock lock(m_cs);
     m_device = device;
     for (auto& rec : m_history) {
         RequestAvatarForRecord(rec);   // заново запрашиваем аватар (асинхронно)
     }
 }
 
-void MatchHistory::AddMatch(CSteamID oppID, int result, long long timestamp) {
+void MatchHistory::AddMatch(CSteamID oppID, int result, long long timestamp, bool confirmed, int httpStatus, const std::string& serverStatus, const std::string& serverMsg) {
+    CSLock lock(m_cs);
     Record rec;
     rec.oppID = oppID;
     rec.matchResult = result;
     rec.avatarTex = nullptr;
     rec.avatarRequested = false;
     rec.timestamp = timestamp;
+    rec.confirmed = confirmed;
+    rec.httpStatus = httpStatus;
+    rec.serverStatus = serverStatus;
+    rec.serverMsg = serverMsg;
     // Получаем ник сразу (синхронно)
     const char* name = SteamFriends()->GetFriendPersonaName(oppID);
     rec.nickname = name ? name : "Unknown";
@@ -78,6 +88,7 @@ void MatchHistory::AddMatch(CSteamID oppID, int result, long long timestamp) {
 }
 
 void MatchHistory::RequestAvatarForRecord(Record& record) {
+    CSLock lock(m_cs);
     if (record.avatarRequested) return;
     record.avatarRequested = true;
 
@@ -134,6 +145,7 @@ void MatchHistory::CreateTextureFromRGBA(const uint8* rgba, uint32 width, uint32
 }
 
 void MatchHistory::OnAvatarImageLoaded(AvatarImageLoaded_t* pParam) {
+    CSLock lock(m_cs);
     // Ищем запись с таким SteamID
     for (auto& rec : m_history) {
         if (rec.oppID == pParam->m_steamID) {
@@ -155,6 +167,7 @@ void MatchHistory::OnAvatarImageLoaded(AvatarImageLoaded_t* pParam) {
     }
 }
 void MatchHistory::RenderHistory() const {
+    CSLock lock(m_cs);
     if (m_history.empty()) {
         ImGui::Text("No matches yet.");
         return;
@@ -190,6 +203,16 @@ void MatchHistory::RenderHistory() const {
         case 6: ImGui::TextColored(ImVec4(1, 1, 0, 1), "Draw"); break;
         default: ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1), "Unknown result"); break;
         }
+        if (!rec.confirmed) {
+            ImGui::SameLine();
+            if (!rec.serverStatus.empty())
+                ImGui::TextColored(ImVec4(1, 0, 0, 1), "(Error %d - %s)", rec.httpStatus, rec.serverStatus.c_str());
+            else
+                ImGui::TextColored(ImVec4(1, 0, 0, 1), "(Error %d)", rec.httpStatus);
+            if (!rec.serverMsg.empty()) {
+                ImGui::TextColored(ImVec4(0.9f, 0.5f, 0.5f, 1), "%s", rec.serverMsg.c_str());
+            }
+        }
         ImGui::EndGroup();
 
         // --- Timestamp (прижат к правому краю) ---
@@ -218,12 +241,14 @@ void MatchHistory::RenderHistory() const {
 }
 
 void MatchHistory::Clear() {
+    CSLock lock(m_cs);
     for (auto& rec : m_history) {
         if (rec.avatarTex) {
             rec.avatarTex->Release();
         }
     }
     m_history.clear();
+
 }
 
 
@@ -264,6 +289,7 @@ namespace RankUI {
                 ImGui::Text("Please update Ranked Mod from");
                 ImGui::SameLine();
                 ImGui::TextLinkOpenURL("github page", "https://github.com/Skullgirls-Communitys-Cut/SkullGirls-Ranking-System/releases/latest");
+                ImGui::TextDisabled("Current version: %s", VERSION);
                 ImGui::End();
             }
             else {
@@ -272,10 +298,12 @@ namespace RankUI {
                 }
                 ImGui::Text("Turn on or off ranking matches.");
 
-                const char* roomTypeStr = SteamMatchmaking()->GetLobbyData(g_CurrentMatch.getLobbyID(), "RoomType");
-                int RoomType = (roomTypeStr && roomTypeStr[0]) ? atoi(roomTypeStr) : 0;
-                if (RoomType != LOBBY_TYPE_ALL_PLAY) {
-                    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "You are playing in the wrong lobby type!");
+                CSteamID lobbyID = g_CurrentMatch.getLobbyID();
+                int RoomType = g_CurrentMatch.GetRoomType();
+				//LogToFile("[UI] Current RoomType: %d", RoomType);
+                if (!lobbyID.IsValid() ||
+                    (RoomType != LOBBY_TYPE_ALL_PLAY && RoomType != LOBBY_TYPE_QUICK_MATCH)) {
+                    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "You are playing in the wrong lobby type!"); // -1
                 }
 
                 ImGui::Separator();
@@ -286,13 +314,17 @@ namespace RankUI {
                 ImGui::Text("");
 
                 // --- Тест POST-запроса ---
-//#ifdef _DEBUG
+#ifdef _DEBUG
                 if (ImGui::Button("Test POST Request")) {
                     LogToFile("Test POST button clicked");
                     TestPostRequest();
                 }
-//#endif
+#endif
                 // -------------------------
+
+                //for (const auto& member : g_CurrentMatch.GetLobbyMembers()) {
+                //    // отображаем member.steamID и member.rankedEnabled
+                //}
 
                 ImGui::TextDisabled("Version: %s", VERSION);
 
