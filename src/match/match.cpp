@@ -293,7 +293,7 @@ bool Match::sendMatchInfo() {
         }
 #endif
 
-        auto res = CurlWrapper::Request(url + path, "POST", body, "application/json");
+        auto res = CurlWrapper::Request(url + path, "POST", body, "application/json", 2, 1000);
         LogToFile("Request done, status: " + std::to_string(res.status));
 
         if (res.status >= 200 && res.status < 300) {

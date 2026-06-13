@@ -14,7 +14,7 @@ public:
     static Response Request(const std::string& url,
         const std::string& method,
         const std::string& body = "",
-        const std::string& content_type = "application/json");
+        const std::string& content_type = "application/json", int maxRetries = 0, int delayMs = 1000);
 
 private:
     // Callback должен быть статическим
