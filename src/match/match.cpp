@@ -313,6 +313,11 @@ bool Match::sendMatchInfo() {
             }
             catch (...) {}
 
+            if (res.status == 0 && errorStatus.empty()) {
+                errorStatus = "NoResponse";
+                errorMsg = "Server did not respond";
+            }
+
             RankUI::g_MatchHistory.AddMatch(OppSteamID, result, timestamp, false, res.status, errorStatus, errorMsg);
             if (!res.success) {
                 OutputDebugStringA("[DEBUG] POST request failed!\n");
