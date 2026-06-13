@@ -30,6 +30,16 @@ Also, keep in mind that Ranked has rules, which you can view on the website. We'
 - Play in the lobby! (Only "All Play" lobby type)
 - You can see that your match has been sent to the UI.
 
+## For Linux users
+You need to enable Proton and add this to Skullgirls properties in Steam: `WINEDLLOVERRIDES="dbghelp=n,b"` 
+Examples: 
+```
+WINEDLLOVERRIDES="dbghelp=n,b" %command% -enablereplays -debugkeys
+```
+```
+WINEDLLOVERRIDES="dbghelp=n,b;d3d9=n,b" %command% -enablereplays -debugkeys
+```
+
 ## Screenshots
 <img width="708" height="315" alt="image" src="https://github.com/user-attachments/assets/3e114842-1571-4759-adfc-8b953587327f" />
 
