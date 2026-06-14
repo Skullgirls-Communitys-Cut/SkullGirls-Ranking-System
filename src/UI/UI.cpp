@@ -261,6 +261,7 @@ namespace RankUI {
         ImGuiIO& io = ImGui::GetIO();
         if (uMsg == WM_KEYDOWN && wParam == VK_F3) {
             imgui_show::Show_Window = !imgui_show::Show_Window;
+            g_ui_visible = imgui_show::Show_Window;
             return 0;
         }
 

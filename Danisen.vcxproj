@@ -86,7 +86,7 @@
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile />
-      <AdditionalIncludeDirectories>$(ProjectDir)external\curl\curl_output_x86\include\curl;$(ProjectDir)external\imgui;$(ProjectDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)external\lvgl;$(ProjectDir)external\lvgl\src;$(ProjectDir)external\curl\curl_output_x86\include\curl;$(ProjectDir)external\imgui;$(ProjectDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -176,6 +176,7 @@
     <ClInclude Include="SUPER_SECRET_KEY.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="external\lvgl\src\**\*.c" />
     <ClCompile Include="external\imgui\backends\imgui_impl_dx9.cpp" />
     <ClCompile Include="external\imgui\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="external\imgui\imgui.cpp" />

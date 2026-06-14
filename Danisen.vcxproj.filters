@@ -46,6 +46,9 @@
     <Filter Include="external\curl">
       <UniqueIdentifier>{7a409ef6-272e-4e83-b098-40aa4592659f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="external\lvgl">
+      <UniqueIdentifier>{a79b3f5c-1e8f-4a8d-8c7f-3f12c8b34e5c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="utils">
       <UniqueIdentifier>{4984603f-ef7a-4524-a025-2f7a850e5e3e}</UniqueIdentifier>
     </Filter>
@@ -328,6 +331,57 @@
     </ClCompile>
     <ClCompile Include="src\utils\CurlWrapper.cpp">
       <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\core\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\display\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\draw\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\draw\sw\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\drivers\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\font\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\indev\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\layouts\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\libs\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\misc\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\osal\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\others\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\stdlib\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\themes\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\tick\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\widgets\*.c">
+      <Filter>external\lvgl</Filter>
+    </ClCompile>
+    <ClCompile Include="external\lvgl\src\debugging\**\*.c">
+      <Filter>external\lvgl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
