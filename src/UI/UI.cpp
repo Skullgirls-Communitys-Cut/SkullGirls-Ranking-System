@@ -257,6 +257,10 @@ namespace RankUI {
 
     MatchHistory g_MatchHistory;
     LRESULT CALLBACK Input(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+        // Контекст у ImGui глобальный, а модов с оверлеем может быть несколько.
+        if (!g_ImGuiContext) return CallWindowProc(OriginalWndProc, hWnd, uMsg, wParam, lParam);
+        ImGui::SetCurrentContext(g_ImGuiContext);
+
         ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
 
         ImGuiIO& io = ImGui::GetIO();
@@ -275,6 +279,9 @@ namespace RankUI {
     }
 
     void Render() {
+        if (!g_ImGuiContext) return;
+        ImGui::SetCurrentContext(g_ImGuiContext);
+
         static bool checked = true;
         ImGui_ImplDX9_NewFrame();
         ImGui_ImplWin32_NewFrame();
