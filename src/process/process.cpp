@@ -20,7 +20,16 @@ std::wstring to_lower(const std::wstring& str) {
 }
 
 DWORD ProcessManager::GetModuleBaseAddress(DWORD dwProcessId, std::wstring ModuleName) {
-    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwProcessId);
+    // Снимок модулей падает с ERROR_BAD_LENGTH, пока список модулей процесса
+    // меняется -- то есть на старте, когда библиотеки ещё догружаются. MSDN
+    // предписывает повторять попытку; без этого одна неудача роняет весь поток.
+    HANDLE hSnapshot = INVALID_HANDLE_VALUE;
+    for (int attempt = 0; attempt < 20; ++attempt) {
+        hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwProcessId);
+        if (hSnapshot != INVALID_HANDLE_VALUE) break;
+        if (GetLastError() != ERROR_BAD_LENGTH) return 0;
+        Sleep(50);
+    }
     if (hSnapshot == INVALID_HANDLE_VALUE) {
         return 0;
     }
