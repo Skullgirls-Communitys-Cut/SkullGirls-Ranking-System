@@ -93,6 +93,48 @@ void Match::SetCanSendMatch(bool NewValue) {
     }
 }
 
+// Minimal lobby creation for quick testing
+bool Match::CreateLobby() {
+    if (SteamMatchmaking() == nullptr) {
+        LogToFile("SteamMatchmaking() is null!");
+        return false;
+    }
+    
+    // Create public lobby with default settings
+    lobbyID = SteamMatchmaking()->CreateLobby(k_ELobbyTypePublic, 10);
+    if (!lobbyID.IsValid()) {
+        LogToFile("Failed to create lobby!");
+        return false;
+    }
+    
+    LogToFile("Lobby created: " + std::to_string(lobbyID.ConvertToUint64()));
+    
+    // Set basic lobby data
+    SteamMatchmaking()->SetLobbyData(lobbyID, "RoomType", "0");
+    SteamMatchmaking()->SetLobbyData(lobbyID, "ranked_version", VERSION);
+    
+    return true;
+}
+
+// Minimal lobby joining for quick testing  
+bool Match::JoinLobby(CSteamID lobbyIDToJoin) {
+    if (SteamMatchmaking() == nullptr) {
+        LogToFile("SteamMatchmaking() is null!");
+        return false;
+    }
+    
+    lobbyID = lobbyIDToJoin;
+    if (!lobbyID.IsValid()) {
+        LogToFile("Invalid lobby ID!");
+        return false;
+    }
+    
+    LogToFile("Joining lobby: " + std::to_string(lobbyID.ConvertToUint64()));
+    SteamMatchmaking()->JoinLobby(lobbyID);
+    
+    return true;
+}
+
 bool Match::sendMatchInfo() {
     LogToFile("sendMatchInfo called");
     LogToFile("Before mutex lock");

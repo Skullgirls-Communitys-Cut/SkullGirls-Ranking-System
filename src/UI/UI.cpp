@@ -12,6 +12,7 @@
 #include "../../src/main_thread/main_thread.h"
 #include "../utils/logger.h"
 #include "../utils/cs_lock.h"
+#include "steam/steam_api.h"
 
 
 namespace imgui_show {
@@ -311,6 +312,22 @@ namespace RankUI {
                 // Отображаем историю матчей
                 g_MatchHistory.RenderHistory();
 
+                // --- Simple Lobby Test Widget ---
+                if (ImGui::Button("Create Lobby Test")) {
+                    LogToFile("Create Lobby Test button clicked");
+                    g_CurrentMatch.CreateLobby();
+                }
+                ImGui::SameLine();
+                
+                CSteamID currentLobbyID = g_CurrentMatch.getLobbyID();
+                if (currentLobbyID.IsValid()) {
+                    ImGui::TextDisabled("Lobby: %s", std::to_string(currentLobbyID.ConvertToUint64()).c_str());
+                    if (ImGui::Button("Join Test Lobby")) {
+                        LogToFile("Join Test Lobby button clicked");
+                        // Quick test: join our own lobby (just for testing)
+                        g_CurrentMatch.JoinLobby(currentLobbyID);
+                    }
+                }
                 ImGui::Text("");
 
                 // --- Тест POST-запроса ---

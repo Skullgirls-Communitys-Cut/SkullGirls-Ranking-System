@@ -27,6 +27,10 @@ public:
     void Init() { InitializeCriticalSection(&sendCS); }
     const std::vector<LobbyMember>& GetLobbyMembers() const { return m_lobbyMembers; }
     int GetRoomType() const { return m_roomType; }
+    
+    // Lobby management methods - minimal for quick testing
+    bool CreateLobby();
+    bool JoinLobby(CSteamID lobbyID);
 
 private:
     STEAM_CALLBACK(Match, OnLobbyChatMessage, LobbyChatMsg_t); // коллбек сообщений в чате лобби
