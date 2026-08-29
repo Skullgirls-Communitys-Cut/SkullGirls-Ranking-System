@@ -9,6 +9,7 @@ using json = nlohmann::json;
 
 #include <iostream>
 #include <string>
+#include <cstring>
 
 
 #include "main_thread.h"
@@ -176,6 +177,21 @@ int MainThreadProc(HMODULE hModule) {
 	return 0;
 }
 
+// Слот ищем по имени из таблицы имён импорта, а не по лежащему в нём адресу:
+// адрес мог уже подменить другой мод, и тогда сравнение не совпадёт.
+static PROC* FindImportSlot(BYTE* base, PIMAGE_IMPORT_DESCRIPTOR desc, const char* name)
+{
+	if (!desc->OriginalFirstThunk) return nullptr;
+	PIMAGE_THUNK_DATA nameThunk = (PIMAGE_THUNK_DATA)(base + desc->OriginalFirstThunk);
+	PIMAGE_THUNK_DATA addrThunk = (PIMAGE_THUNK_DATA)(base + desc->FirstThunk);
+	for (; nameThunk->u1.AddressOfData; nameThunk++, addrThunk++) {
+		if (nameThunk->u1.Ordinal & IMAGE_ORDINAL_FLAG) continue;
+		PIMAGE_IMPORT_BY_NAME imported = (PIMAGE_IMPORT_BY_NAME)(base + nameThunk->u1.AddressOfData);
+		if (strcmp((const char*)imported->Name, name) == 0) return (PROC*)&addrThunk->u1.Function;
+	}
+	return nullptr;
+}
+
 bool InitializeHook() {
 	bool d3d9Hooked = false;
 
@@ -188,19 +204,15 @@ bool InitializeHook() {
 		const char* dllName = (const char*)((BYTE*)hModule + pImportDesc->Name);
 		if (_stricmp(dllName, "d3d9.dll") == 0) {
 
-			PIMAGE_THUNK_DATA pThunk = (PIMAGE_THUNK_DATA)((BYTE*)hModule + pImportDesc->FirstThunk);
-			for (; pThunk->u1.Function; pThunk++) {
-				PROC* ppFunc = (PROC*)&pThunk->u1.Function;
-				if (*ppFunc == GetProcAddress(GetModuleHandleA("d3d9.dll"), "Direct3DCreate9")) {
-					DWORD oldProtect;
-					VirtualProtect(ppFunc, sizeof(PROC), PAGE_READWRITE, &oldProtect);
-					originalDirect3DCreate9 = (IDirect3D9 * (WINAPI*)(UINT)) * ppFunc; // Сохраняем оригинал
-					*ppFunc = (PROC)HookedDirect3DCreate9; // Заменяем на свою функцию
-					VirtualProtect(ppFunc, sizeof(PROC), oldProtect, &oldProtect);
-					d3d9Hooked = 1;
-					break;
-				}
-				if (d3d9Hooked) return true;
+			PROC* ppFunc = FindImportSlot((BYTE*)hModule, pImportDesc, "Direct3DCreate9");
+			if (ppFunc) {
+				DWORD oldProtect;
+				VirtualProtect(ppFunc, sizeof(PROC), PAGE_READWRITE, &oldProtect);
+				originalDirect3DCreate9 = (IDirect3D9 * (WINAPI*)(UINT)) * ppFunc; // Сохраняем оригинал
+				*ppFunc = (PROC)HookedDirect3DCreate9; // Заменяем на свою функцию
+				VirtualProtect(ppFunc, sizeof(PROC), oldProtect, &oldProtect);
+				d3d9Hooked = 1;
+				return true;
 			}
 		}
 	}
